@@ -1,0 +1,13 @@
+reversible_group,max_active_phases,capacity_multiplier_when_active,activation_cost_per_phase
+G01,3,1.52,2380
+G02,4,1.59,2560
+G03,2,1.66,2740
+G04,3,1.73,2920
+G05,4,1.45,3100
+G06,2,1.52,3280
+G07,3,1.59,3460
+G08,4,1.66,3640
+G09,2,1.73,3820
+G10,3,1.45,4000
+G11,4,1.52,4180
+G12,2,1.59,4360

@@ -1,0 +1,12 @@
+contract_id,mode,threshold_teu,fixed_fee,discount_per_teu
+R1,rail,300,22000,10
+R2,rail,500,34000,16
+R3,rail,700,47000,22
+R4,rail,900,62000,27
+B1,barge,250,13000,7
+B2,barge,420,21000,11
+B3,barge,620,31000,15
+B4,barge,850,43000,19
+T1,truck,260,12000,5
+T2,truck,420,21000,8
+T3,truck,650,32000,11

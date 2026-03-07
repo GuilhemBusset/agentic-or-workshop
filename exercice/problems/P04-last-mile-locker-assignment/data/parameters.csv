@@ -1,0 +1,5 @@
+parameter,value
+late_penalty_per_parcel,6.5
+fairness_shortfall_penalty_per_parcel,12
+max_active_lockers,18
+locker_on_time_rate,0.97

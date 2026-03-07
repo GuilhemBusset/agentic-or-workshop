@@ -1,0 +1,743 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Context Window Lab</title>
+  <style>
+    :root {
+      --bg: #f3efe4;
+      --panel: #fffaf1;
+      --ink: #1f1f1f;
+      --muted: #5c564f;
+      --accent: #004e66;
+      --accent-2: #f05d23;
+      --good: #1c8f57;
+      --warn: #c07a00;
+      --bad: #c0392b;
+      --line: #d8ccba;
+      --shadow: 0 12px 30px rgba(31, 31, 31, 0.1);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 20%, rgba(240, 93, 35, 0.12), transparent 35%),
+        radial-gradient(circle at 90% 10%, rgba(0, 78, 102, 0.12), transparent 35%),
+        linear-gradient(180deg, #f9f4ea, #efe5d4);
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero {
+      background: linear-gradient(120deg, rgba(0, 78, 102, 0.92), rgba(9, 74, 112, 0.86));
+      color: #ffffff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.35rem, 2vw, 2rem);
+      letter-spacing: 0.01em;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 90ch;
+      color: rgba(255, 255, 255, 0.94);
+      line-height: 1.45;
+    }
+
+    .hero-actions {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .hero-link {
+      display: inline-block;
+      text-decoration: none;
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.58);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .hero-link:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    @media (min-width: 980px) {
+      .grid {
+        grid-template-columns: 360px 1fr;
+      }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .controls h2,
+    .results h2 {
+      margin: 0 0 12px;
+      font-size: 1.1rem;
+      letter-spacing: 0.01em;
+    }
+
+    .control {
+      margin-bottom: 14px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .control label {
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .control .meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.83rem;
+      color: var(--muted);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    select,
+    button {
+      font: inherit;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      padding: 8px 10px;
+    }
+
+    button {
+      cursor: pointer;
+      font-weight: 700;
+      border-color: rgba(0, 78, 102, 0.5);
+    }
+
+    button:hover {
+      background: rgba(0, 78, 102, 0.08);
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible {
+      outline: 3px solid rgba(240, 93, 35, 0.45);
+      outline-offset: 1px;
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .status {
+      border-radius: 10px;
+      background: #fff;
+      border: 1px dashed var(--line);
+      padding: 9px;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      color: var(--muted);
+    }
+
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    @media (min-width: 760px) {
+      .comparison {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 12px;
+      display: grid;
+      gap: 9px;
+    }
+
+    .panel h3 {
+      margin: 0;
+      font-size: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .chip {
+      font-size: 0.75rem;
+      color: #fff;
+      background: var(--accent);
+      border-radius: 999px;
+      padding: 3px 8px;
+      letter-spacing: 0.02em;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    @media (min-width: 700px) {
+      .metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 9px;
+      background: #fff;
+    }
+
+    .metric .name {
+      font-size: 0.83rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .metric .value {
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .risk-good {
+      color: var(--good);
+    }
+
+    .risk-warn {
+      color: var(--warn);
+    }
+
+    .risk-bad {
+      color: var(--bad);
+    }
+
+    .curve-wrap {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      background: #fff;
+    }
+
+    .curve-wrap h3 {
+      margin: 0 0 6px;
+      font-size: 0.95rem;
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 8px;
+      background: linear-gradient(180deg, #f9fbff, #ffffff);
+    }
+
+    .legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 7px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .legend span::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      display: inline-block;
+      margin-right: 5px;
+      border-radius: 999px;
+      vertical-align: middle;
+    }
+
+    .l-curated::before {
+      background: var(--accent);
+    }
+
+    .l-bloated::before {
+      background: var(--accent-2);
+    }
+
+    .footer-note {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.4;
+      margin-top: 2px;
+    }
+  </style>
+  <link rel="stylesheet" href="../../shared/atom-one-dark-labs.css" />
+  <style>
+    /* Per-page visibility tuning on top of shared Atom One Dark theme */
+    .metric .name,
+    .legend span,
+    .footer-note,
+    .status {
+      color: var(--od-text) !important;
+    }
+
+    .metric .value {
+      color: var(--od-text-hi) !important;
+    }
+
+    .legend .l-curated::before {
+      background: #61afef !important;
+    }
+
+    .legend .l-bloated::before {
+      background: #d19a66 !important;
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero" aria-labelledby="hero-title">
+      <h1 id="hero-title">Context Window Lab: Signal, Noise, and Diminishing Returns</h1>
+      <p>
+        Adjust controls to simulate how a model responds when context becomes larger, noisier, or contradictory.
+        Compare a curated prompt against a bloated one and watch quality, risk, and cost/latency proxies change.
+      </p>
+    </section>
+
+    <section class="grid" aria-label="Lab Workspace">
+      <aside class="card controls" aria-label="Simulation Controls">
+        <h2>Controls</h2>
+
+        <div class="control">
+          <label for="contextSize">Context size</label>
+          <div class="meta"><span>Token budget used</span><output id="contextSizeOut" for="contextSize">50%</output></div>
+          <input id="contextSize" type="range" min="0" max="100" value="50" />
+        </div>
+
+        <div class="control">
+          <label for="signalNoise">Signal-to-noise</label>
+          <div class="meta"><span>Higher means cleaner context</span><output id="signalNoiseOut" for="signalNoise">60%</output></div>
+          <input id="signalNoise" type="range" min="0" max="100" value="60" />
+        </div>
+
+        <div class="control">
+          <label for="relevantFacts">Relevant facts</label>
+          <div class="meta"><span>Supportive evidence</span><output id="relevantFactsOut" for="relevantFacts">6</output></div>
+          <input id="relevantFacts" type="range" min="0" max="12" value="6" />
+        </div>
+
+        <div class="control">
+          <label for="distractors">Irrelevant distractors</label>
+          <div class="meta"><span>Off-topic text</span><output id="distractorsOut" for="distractors">4</output></div>
+          <input id="distractors" type="range" min="0" max="20" value="4" />
+        </div>
+
+        <div class="control">
+          <label for="conflicts">Conflicting snippets</label>
+          <div class="meta"><span>Contradictory claims</span><output id="conflictsOut" for="conflicts">1</output></div>
+          <input id="conflicts" type="range" min="0" max="8" value="1" />
+        </div>
+
+        <div class="control">
+          <label for="placement">Recency/position bias</label>
+          <select id="placement" aria-describedby="placementHelp">
+            <option value="front">Front-loaded relevant facts</option>
+            <option value="mixed">Mixed placement</option>
+          </select>
+          <div id="placementHelp" class="meta"><span>Simulates ordering effects with identical facts</span><span></span></div>
+        </div>
+
+        <div class="button-row">
+          <button id="presetClean" type="button">Preset: Curated</button>
+          <button id="presetNoisy" type="button">Preset: Bloated</button>
+        </div>
+
+        <p class="status" id="status" aria-live="polite"></p>
+      </aside>
+
+      <section class="card results" aria-label="Simulation Results">
+        <h2>Side-by-Side Simulation</h2>
+
+        <div class="comparison">
+          <article class="panel" aria-labelledby="curated-title">
+            <h3 id="curated-title">Curated Context <span class="chip">high relevance</span></h3>
+            <div class="metrics" id="curatedMetrics"></div>
+          </article>
+
+          <article class="panel" aria-labelledby="bloated-title">
+            <h3 id="bloated-title">Bloated Context <span class="chip" style="background: var(--accent-2);">low relevance</span></h3>
+            <div class="metrics" id="bloatedMetrics"></div>
+          </article>
+        </div>
+
+        <div class="curve-wrap" aria-label="Diminishing Returns Curve">
+          <h3>Diminishing Returns Curve: Quality vs Context Size</h3>
+          <canvas id="curve" width="860" height="280" role="img" aria-label="Line chart showing quality plateau as context grows"></canvas>
+          <div class="legend">
+            <span class="l-curated">Curated context quality</span>
+            <span class="l-bloated">Bloated context quality</span>
+          </div>
+          <p class="footer-note">
+            This is a pedagogical simulation. It models typical behavior trends rather than real API calls.
+          </p>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const controls = {
+      contextSize: document.getElementById("contextSize"),
+      signalNoise: document.getElementById("signalNoise"),
+      relevantFacts: document.getElementById("relevantFacts"),
+      distractors: document.getElementById("distractors"),
+      conflicts: document.getElementById("conflicts"),
+      placement: document.getElementById("placement")
+    };
+
+    const outputs = {
+      contextSize: document.getElementById("contextSizeOut"),
+      signalNoise: document.getElementById("signalNoiseOut"),
+      relevantFacts: document.getElementById("relevantFactsOut"),
+      distractors: document.getElementById("distractorsOut"),
+      conflicts: document.getElementById("conflictsOut")
+    };
+
+    const statusEl = document.getElementById("status");
+    const curatedMetricsEl = document.getElementById("curatedMetrics");
+    const bloatedMetricsEl = document.getElementById("bloatedMetrics");
+    const curveCanvas = document.getElementById("curve");
+    const curveCtx = curveCanvas.getContext("2d");
+    const curveTheme = {
+      grid: "#4b5263",
+      axis: "#cfd7e3",
+      curated: "#61afef",
+      bloated: "#d19a66"
+    };
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function round(value) {
+      return Math.round(value);
+    }
+
+    function pct(value) {
+      return `${round(value)}%`;
+    }
+
+    function riskClass(label) {
+      if (label === "Low") return "risk-good";
+      if (label === "Medium") return "risk-warn";
+      return "risk-bad";
+    }
+
+    function riskLabel(score) {
+      if (score < 33) return "Low";
+      if (score < 66) return "Medium";
+      return "High";
+    }
+
+    function diminishingQuality(size, signalRatio, relevance, distractors, conflicts, placementBoost, panelBias) {
+      const normalizedSize = size / 100;
+      const baseGain = 1 - Math.exp(-3.2 * normalizedSize);
+      const signalTerm = signalRatio * 42;
+      const relevanceTerm = relevance * 2.6;
+      const noisePenalty = distractors * 1.9;
+      const conflictPenalty = conflicts * 6.8;
+      const overloadPenalty = Math.max(0, size - 70) * 0.45;
+      const score = 24 + baseGain * 36 + signalTerm + relevanceTerm - noisePenalty - conflictPenalty - overloadPenalty + placementBoost + panelBias;
+      return clamp(score, 0, 100);
+    }
+
+    function readInputs() {
+      return {
+        size: Number(controls.contextSize.value),
+        signalNoise: Number(controls.signalNoise.value) / 100,
+        relevantFacts: Number(controls.relevantFacts.value),
+        distractors: Number(controls.distractors.value),
+        conflicts: Number(controls.conflicts.value),
+        placementBoost: controls.placement.value === "front" ? 5 : -2
+      };
+    }
+
+    function buildModeParams(mode, baseSize, inputs) {
+      const {
+        signalNoise,
+        relevantFacts,
+        distractors,
+        conflicts,
+        placementBoost
+      } = inputs;
+
+      return mode === "curated"
+        ? {
+            size: clamp(baseSize - 8, 5, 100),
+            signal: clamp(signalNoise + 0.2, 0, 1),
+            relevance: clamp(relevantFacts + 2, 0, 20),
+            distractors: clamp(distractors - 2, 0, 30),
+            conflicts: clamp(conflicts - 1, 0, 10),
+            placement: placementBoost,
+            bias: 4
+          }
+        : {
+            size: clamp(baseSize + 18, 5, 100),
+            signal: clamp(signalNoise - 0.22, 0, 1),
+            relevance: clamp(relevantFacts - 2, 0, 20),
+            distractors: clamp(distractors + 6, 0, 30),
+            conflicts: clamp(conflicts + 2, 0, 10),
+            placement: -placementBoost,
+            bias: -6
+          };
+    }
+
+    function computeMetrics(mode, inputs, baseSize = inputs.size) {
+      const params = buildModeParams(mode, baseSize, inputs);
+
+      const quality = diminishingQuality(
+        params.size,
+        params.signal,
+        params.relevance,
+        params.distractors,
+        params.conflicts,
+        params.placement,
+        params.bias
+      );
+
+      const omissionRiskScore = clamp(
+        58 - quality * 0.45 + params.distractors * 1.2 + Math.max(0, 65 - params.size) * 0.2,
+        0,
+        100
+      );
+
+      const hallucinationRiskScore = clamp(
+        24 + params.conflicts * 10 + params.distractors * 1.6 + (1 - params.signal) * 25,
+        0,
+        100
+      );
+
+      const riskScore = clamp((omissionRiskScore + hallucinationRiskScore) / 2, 0, 100);
+
+      const latencyCostProxy = clamp(
+        8 + params.size * 0.8 + params.distractors * 0.8 + params.conflicts * 1.4,
+        0,
+        100
+      );
+
+      return {
+        quality,
+        riskScore,
+        latencyCostProxy,
+        hallucinationRiskScore,
+        omissionRiskScore,
+        params
+      };
+    }
+
+    function metricCard(name, value, extraClass = "") {
+      return `
+        <div class="metric">
+          <div class="name">${name}</div>
+          <div class="value ${extraClass}">${value}</div>
+        </div>
+      `;
+    }
+
+    function drawCurve(curatedMetrics, bloatedMetrics, inputs) {
+      const w = curveCanvas.width;
+      const h = curveCanvas.height;
+      const left = 50;
+      const right = w - 20;
+      const top = 18;
+      const bottom = h - 34;
+      const innerW = right - left;
+      const innerH = bottom - top;
+
+      curveCtx.clearRect(0, 0, w, h);
+
+      curveCtx.strokeStyle = curveTheme.grid;
+      curveCtx.lineWidth = 1;
+      for (let i = 0; i <= 5; i += 1) {
+        const y = top + (innerH / 5) * i;
+        curveCtx.beginPath();
+        curveCtx.moveTo(left, y);
+        curveCtx.lineTo(right, y);
+        curveCtx.stroke();
+      }
+
+      for (let i = 0; i <= 5; i += 1) {
+        const x = left + (innerW / 5) * i;
+        curveCtx.beginPath();
+        curveCtx.moveTo(x, top);
+        curveCtx.lineTo(x, bottom);
+        curveCtx.stroke();
+      }
+
+      curveCtx.fillStyle = curveTheme.axis;
+      curveCtx.font = "12px IBM Plex Sans, sans-serif";
+      curveCtx.fillText("Quality", 8, 14);
+      curveCtx.fillText("Context size", w - 92, h - 7);
+
+      const points = Array.from({ length: 21 }, (_, idx) => idx * 5);
+
+      function pathFor(mode, color) {
+        curveCtx.beginPath();
+        points.forEach((baseSize, index) => {
+          const params = buildModeParams(mode, baseSize, inputs);
+          const simulated = diminishingQuality(
+            params.size,
+            params.signal,
+            params.relevance,
+            params.distractors,
+            params.conflicts,
+            params.placement,
+            params.bias
+          );
+
+          const x = left + (params.size / 100) * innerW;
+          const y = bottom - (simulated / 100) * innerH;
+          if (index === 0) {
+            curveCtx.moveTo(x, y);
+          } else {
+            curveCtx.lineTo(x, y);
+          }
+        });
+        curveCtx.strokeStyle = color;
+        curveCtx.lineWidth = 3;
+        curveCtx.stroke();
+      }
+
+      pathFor("curated", curveTheme.curated);
+      pathFor("bloated", curveTheme.bloated);
+
+      function drawPoint(contextSize, quality, color) {
+        const x = left + (contextSize / 100) * innerW;
+        const y = bottom - (quality / 100) * innerH;
+        curveCtx.beginPath();
+        curveCtx.fillStyle = color;
+        curveCtx.arc(x, y, 5.5, 0, Math.PI * 2);
+        curveCtx.fill();
+      }
+
+      drawPoint(curatedMetrics.params.size, curatedMetrics.quality, curveTheme.curated);
+      drawPoint(bloatedMetrics.params.size, bloatedMetrics.quality, curveTheme.bloated);
+    }
+
+    function render() {
+      outputs.contextSize.value = `${controls.contextSize.value}%`;
+      outputs.signalNoise.value = `${controls.signalNoise.value}%`;
+      outputs.relevantFacts.value = controls.relevantFacts.value;
+      outputs.distractors.value = controls.distractors.value;
+      outputs.conflicts.value = controls.conflicts.value;
+
+      const inputs = readInputs();
+      const curated = computeMetrics("curated", inputs);
+      const bloated = computeMetrics("bloated", inputs);
+
+      curatedMetricsEl.innerHTML = [
+        metricCard("Answer quality score", pct(curated.quality)),
+        metricCard(
+          "Hallucination / omission risk",
+          riskLabel(curated.riskScore),
+          riskClass(riskLabel(curated.riskScore))
+        ),
+        metricCard("Latency / cost proxy", pct(curated.latencyCostProxy)),
+        metricCard("Contradiction sensitivity", pct(curated.hallucinationRiskScore))
+      ].join("");
+
+      bloatedMetricsEl.innerHTML = [
+        metricCard("Answer quality score", pct(bloated.quality)),
+        metricCard(
+          "Hallucination / omission risk",
+          riskLabel(bloated.riskScore),
+          riskClass(riskLabel(bloated.riskScore))
+        ),
+        metricCard("Latency / cost proxy", pct(bloated.latencyCostProxy)),
+        metricCard("Contradiction sensitivity", pct(bloated.hallucinationRiskScore))
+      ].join("");
+
+      const delta = round(curated.quality - bloated.quality);
+      const riskDelta = round(bloated.riskScore - curated.riskScore);
+      statusEl.textContent = `Current simulation: curated context is ${Math.abs(delta)} points ${delta >= 0 ? "better" : "worse"} in quality, while bloated context has ${Math.abs(riskDelta)} points ${riskDelta >= 0 ? "higher" : "lower"} risk.`;
+
+      drawCurve(curated, bloated, inputs);
+    }
+
+    function loadPreset(type) {
+      if (type === "curated") {
+        controls.contextSize.value = 58;
+        controls.signalNoise.value = 84;
+        controls.relevantFacts.value = 9;
+        controls.distractors.value = 2;
+        controls.conflicts.value = 0;
+        controls.placement.value = "front";
+      } else {
+        controls.contextSize.value = 84;
+        controls.signalNoise.value = 32;
+        controls.relevantFacts.value = 5;
+        controls.distractors.value = 14;
+        controls.conflicts.value = 4;
+        controls.placement.value = "mixed";
+      }
+      render();
+    }
+
+    Object.values(controls).forEach((el) => {
+      el.addEventListener("input", render);
+      el.addEventListener("change", render);
+    });
+
+    document.getElementById("presetClean").addEventListener("click", () => loadPreset("curated"));
+    document.getElementById("presetNoisy").addEventListener("click", () => loadPreset("bloated"));
+
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+depot_id,shuttles_available,units_per_shuttle,max_roundtrips_per_phase,reposition_cost_per_shuttle_phase
+BD1,36,46,3,121
+BD2,44,50,2,127
+BD3,52,42,3,133
+BD4,60,46,2,139
+BD5,68,50,3,145
+BD6,76,42,2,151

@@ -1,0 +1,9 @@
+scenario_id,description,probability,risk_level
+S01,Baseline,0.125,medium
+S02,WinterStorm,0.125,high
+S03,FuelSpike,0.125,low
+S04,FestivalPeak,0.125,high
+S05,BridgeClosure,0.125,high
+S06,HeatWave,0.125,high
+S07,IndustrialDip,0.125,low
+S08,RecoveryPush,0.125,high

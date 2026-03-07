@@ -1,0 +1,7 @@
+phase_id,hours,demand_release_fraction
+P1,2,0.25
+P2,2,0.2
+P3,2,0.17
+P4,2,0.15
+P5,2,0.13
+P6,2,0.1

@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Workshop Introduction | Session Goal</title>
+  <link rel="stylesheet" href="../materials/shared/atom-one-dark-labs.css" />
+  <style>
+    :root {
+      --hero-glow-1: rgba(86, 182, 194, 0.3);
+      --hero-glow-2: rgba(97, 175, 239, 0.28);
+      --hero-glow-3: rgba(209, 154, 102, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: clamp(18px, 3.2vw, 40px);
+      background:
+        radial-gradient(circle at 14% 18%, var(--hero-glow-1), transparent 34%),
+        radial-gradient(circle at 88% 10%, var(--hero-glow-2), transparent 30%),
+        radial-gradient(circle at 55% 92%, var(--hero-glow-3), transparent 32%),
+        linear-gradient(160deg, #0f141d, #141a25 58%, #101620);
+      color: var(--od-text-hi);
+      font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+    }
+
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(115deg, rgba(86, 182, 194, 0.05), transparent 38%),
+        repeating-linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.018) 0 2px,
+          transparent 2px 9px
+        );
+    }
+
+    .goal-card {
+      width: min(1040px, 100%);
+      border-radius: 20px;
+      border: 1px solid rgba(120, 158, 205, 0.28);
+      background:
+        linear-gradient(145deg, rgba(30, 39, 55, 0.94), rgba(22, 29, 42, 0.94));
+      box-shadow: 0 26px 70px rgba(0, 0, 0, 0.48);
+      padding: clamp(22px, 4vw, 48px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .goal-card::before {
+      content: "";
+      position: absolute;
+      width: 440px;
+      height: 440px;
+      right: -160px;
+      top: -220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(97, 175, 239, 0.34), transparent 72%);
+      filter: blur(8px);
+      animation: breathe 7s ease-in-out infinite;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 14px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #d4ebff;
+      border: 1px solid rgba(97, 175, 239, 0.6);
+      background: rgba(97, 175, 239, 0.16);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.9rem, 4.6vw, 4rem);
+      line-height: 1.03;
+      letter-spacing: 0.01em;
+      max-width: 14ch;
+    }
+
+    .lead {
+      margin: 20px 0 0;
+      max-width: 60ch;
+      color: var(--od-text);
+      font-size: clamp(1.02rem, 1.8vw, 1.35rem);
+      line-height: 1.42;
+    }
+
+    .impact-list {
+      margin: 24px 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 10px;
+    }
+
+    .impact-list li {
+      border-radius: 12px;
+      border: 1px solid rgba(97, 175, 239, 0.34);
+      background: rgba(97, 175, 239, 0.08);
+      padding: 10px 12px;
+      font-size: clamp(0.92rem, 1.5vw, 1.04rem);
+      color: #d2e5f7;
+    }
+
+    .actions {
+      margin-top: 28px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(86, 182, 194, 0.7) !important;
+      background: linear-gradient(180deg, rgba(86, 182, 194, 0.26), rgba(97, 175, 239, 0.2)) !important;
+      color: #eef8ff !important;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      text-decoration: none;
+      transition: transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .cta:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 26px rgba(29, 83, 132, 0.36);
+    }
+
+    .cta:focus-visible {
+      outline: 2px solid rgba(97, 175, 239, 0.9) !important;
+      outline-offset: 2px;
+    }
+
+    @keyframes breathe {
+      0%, 100% {
+        transform: scale(1) translate(0, 0);
+      }
+      50% {
+        transform: scale(1.07) translate(-8px, 10px);
+      }
+    }
+
+    @media (max-width: 700px) {
+      .goal-card {
+        padding: 22px 18px;
+      }
+
+      .impact-list {
+        margin-top: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+  <main class="goal-card" aria-labelledby="session-goal-title">
+    <p class="eyebrow">Session Goal</p>
+    <h1 id="session-goal-title">Coding Agents for Optimization Research</h1>
+    <p class="lead">
+      Learn to use coding agents effectively, apply the right usage pattern, and build production-grade harnesses.
+    </p>
+    <ul class="impact-list" aria-label="Session outcomes">
+      <li>Understand how to work with coding agents with confidence.</li>
+      <li>Choose the right interaction pattern for each engineering task.</li>
+      <li>Ship reliable, production-minded agentic workflows.</li>
+    </ul>
+    <div class="actions">
+      <a class="next-link cta" href="./01-workshop-intro-slides.html">Next: Instructor & Workshop Flow</a>
+    </div>
+  </main>
+</body>
+</html>

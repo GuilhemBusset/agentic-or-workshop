@@ -1,0 +1,6 @@
+shift_id,max_couriers,hours_per_courier,parcels_per_hour,cost_per_courier
+EARLY,40,6,9,168
+MORNING,42,6,8,165
+AFTERNOON,38,6,8,160
+EVENING,30,5,7,150
+LATE,22,4,6,138

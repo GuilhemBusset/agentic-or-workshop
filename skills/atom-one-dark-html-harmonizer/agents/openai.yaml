@@ -1,0 +1,4 @@
+interface:
+  display_name: "Atom One Dark Harmonizer"
+  short_description: "Align multi-page HTML labs to One Dark"
+  default_prompt: "Standardize all workshop HTML pages to a shared Atom One Dark style, preserve behavior, and validate compliance."

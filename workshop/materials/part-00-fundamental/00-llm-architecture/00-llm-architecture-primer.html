@@ -1,0 +1,1438 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LLM Architecture Primer Lab</title>
+  <style>
+    :root {
+      --bg: #f6f1e6;
+      --paper: #fffdf8;
+      --ink: #1f1f1f;
+      --muted: #625b50;
+      --line: #ddd0ba;
+      --teal: #0b5d6d;
+      --orange: #e27c3a;
+      --rose: #b54848;
+      --green: #5d7f00;
+      --shadow: 0 14px 34px rgba(23, 41, 51, 0.12);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Avenir Next", "Trebuchet MS", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 12% 12%, rgba(226, 124, 58, 0.17), transparent 34%),
+        radial-gradient(circle at 88% 10%, rgba(11, 93, 109, 0.15), transparent 32%),
+        linear-gradient(180deg, #fbf7ef, #f1e5d3);
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 22px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .hero {
+      background: linear-gradient(122deg, rgba(11, 93, 109, 0.95), rgba(17, 67, 94, 0.91));
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      color: #fff;
+      padding: 18px;
+    }
+
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.4rem, 2.2vw, 2.15rem);
+      letter-spacing: 0.02em;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 100ch;
+      color: rgba(255, 255, 255, 0.94);
+      line-height: 1.45;
+    }
+
+    .lab-grid {
+      display: grid;
+      gap: 11px;
+      grid-template-areas:
+        "controls"
+        "words"
+        "graph"
+        "data"
+        "stages";
+    }
+
+    @media (min-width: 1080px) {
+      .lab-grid {
+        grid-template-columns: 340px 1fr;
+        grid-template-areas:
+          "controls words"
+          "graph graph"
+          "data data"
+          "stages stages";
+      }
+    }
+
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+
+    .card h2,
+    .card h3 {
+      margin: 0;
+      letter-spacing: 0.02em;
+    }
+
+    .card h2 {
+      font-size: 1.02rem;
+    }
+
+    .card h3 {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    #controlsCard {
+      grid-area: controls;
+    }
+
+    #wordsCard {
+      grid-area: words;
+    }
+
+    #graphCard {
+      grid-area: graph;
+    }
+
+    #dataCard {
+      grid-area: data;
+    }
+
+    #stagesCard {
+      grid-area: stages;
+    }
+
+    .prompt-box {
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: 8px;
+      background: #fff;
+      line-height: 1.4;
+      color: var(--muted);
+      font-size: 0.86rem;
+      display: grid;
+      gap: 6px;
+    }
+
+    .prompt-box strong {
+      color: var(--ink);
+      font-size: 0.84rem;
+      letter-spacing: 0.01em;
+    }
+
+    .switches {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .switch {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fffdf9;
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .switch input {
+      width: 15px;
+      height: 15px;
+      margin: 0;
+      accent-color: var(--orange);
+    }
+
+    .profile-badge {
+      border-radius: 999px;
+      border: 1px solid rgba(11, 93, 109, 0.45);
+      background: rgba(11, 93, 109, 0.12);
+      color: #1b4652;
+      font-size: 0.78rem;
+      font-weight: 700;
+      width: fit-content;
+      padding: 4px 10px;
+    }
+
+    .token-group {
+      display: grid;
+      gap: 6px;
+    }
+
+    .token-lane {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      padding: 8px;
+      min-height: 44px;
+      align-items: center;
+    }
+
+    .token {
+      border-radius: 999px;
+      border: 1px solid rgba(11, 93, 109, 0.26);
+      padding: 4px 9px;
+      font-size: 0.78rem;
+      line-height: 1;
+      background: rgba(11, 93, 109, 0.08);
+      color: #214d58;
+    }
+
+    .token.system {
+      border-color: rgba(226, 124, 58, 0.45);
+      background: rgba(226, 124, 58, 0.12);
+      color: #6f3a19;
+    }
+
+    .token.rag {
+      border-color: rgba(93, 127, 0, 0.45);
+      background: rgba(93, 127, 0, 0.14);
+      color: #435b00;
+    }
+
+    .token.generated {
+      border-color: rgba(181, 72, 72, 0.38);
+      background: rgba(181, 72, 72, 0.1);
+      color: #6c2f2f;
+    }
+
+    .token.selected {
+      border-color: rgba(11, 93, 109, 0.75);
+      border-width: 2px;
+      font-weight: 700;
+    }
+
+    .token.cursor {
+      border-style: dashed;
+      border-width: 2px;
+      border-color: rgba(11, 93, 109, 0.86);
+      background: rgba(11, 93, 109, 0.04);
+      color: #1e4f5a;
+      animation: cursorPulse 1.1s ease-in-out infinite;
+    }
+
+    @keyframes cursorPulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.06); }
+      100% { transform: scale(1); }
+    }
+
+    .meta-line {
+      margin: 0;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .candidate-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 6px;
+    }
+
+    .candidate-item {
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #fff;
+      padding: 6px 8px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 6px 8px;
+      align-items: center;
+    }
+
+    .candidate-token {
+      font-weight: 700;
+      font-size: 0.84rem;
+    }
+
+    .candidate-prob {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .prob-bar {
+      grid-column: 1 / -1;
+      border-radius: 999px;
+      background: rgba(11, 93, 109, 0.12);
+      height: 6px;
+      overflow: hidden;
+    }
+
+    .prob-bar span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, rgba(226, 124, 58, 0.76), rgba(11, 93, 109, 0.87));
+      border-radius: 999px;
+    }
+
+    .explain-box {
+      margin: 0;
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: 8px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.38;
+    }
+
+    .explain-box strong {
+      color: var(--ink);
+    }
+
+    .live-note {
+      margin: 0;
+      border: 1px solid rgba(11, 93, 109, 0.35);
+      border-radius: 10px;
+      background: rgba(11, 93, 109, 0.12);
+      color: #1b4652;
+      padding: 8px;
+      font-size: 0.84rem;
+      line-height: 1.36;
+    }
+
+    .graph-wrap {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: linear-gradient(180deg, #f8fbfd, #ffffff);
+      padding: 8px;
+      overflow-x: auto;
+    }
+
+    .graph-wrap svg {
+      width: 100%;
+      min-width: 1740px;
+      height: auto;
+      display: block;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 0.77rem;
+      color: var(--muted);
+    }
+
+    .legend span::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      display: inline-block;
+      border-radius: 999px;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+
+    .l-current::before {
+      background: var(--teal);
+    }
+
+    .l-past::before {
+      background: #466f91;
+    }
+
+    .l-future::before {
+      background: #9cb3c5;
+    }
+
+    .l-pulse::before {
+      background: var(--rose);
+    }
+
+    .stage-grid {
+      display: grid;
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    @media (min-width: 760px) {
+      .stage-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (min-width: 1180px) {
+      .stage-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+      }
+    }
+
+    .stage-chip {
+      font: inherit;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--muted);
+      padding: 7px 8px;
+      font-size: 0.78rem;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .stage-chip.active,
+    .stage-chip[aria-current="step"] {
+      border-color: rgba(11, 93, 109, 0.56);
+      background: rgba(11, 93, 109, 0.12);
+      color: #173e4a;
+      font-weight: 700;
+    }
+
+    .nav-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+    }
+
+    button {
+      font: inherit;
+      border: 1px solid rgba(11, 93, 109, 0.45);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--ink);
+      padding: 8px 10px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    button:focus-visible,
+    .stage-chip:focus-visible,
+    input:focus-visible {
+      outline: 3px solid rgba(226, 124, 58, 0.45);
+      outline-offset: 1px;
+    }
+
+    .stage-detail {
+      margin: 0;
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: 8px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.4;
+      min-height: 46px;
+    }
+
+    .data-helper {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.35;
+    }
+
+    .data-split {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    @media (min-width: 900px) {
+      .data-split {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .data-pane {
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: 8px;
+      background: #fff;
+      display: grid;
+      gap: 6px;
+      height: 100%;
+    }
+
+    .data-pane h3 {
+      margin: 0;
+      font-size: 0.82rem;
+      letter-spacing: 0.02em;
+      color: var(--muted);
+    }
+
+    .data-view {
+      margin: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f8fafc;
+      color: #16353f;
+      padding: 10px;
+      font: 0.79rem/1.38 "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      white-space: pre-wrap;
+      word-break: break-word;
+      height: 240px;
+      overflow: auto;
+    }
+
+    .edge-pulse {
+      stroke-linecap: round;
+      stroke-dasharray: 8 12;
+      animation: edgePulseMove 1.1s linear infinite;
+    }
+
+    @keyframes edgePulseMove {
+      from { stroke-dashoffset: 0; }
+      to { stroke-dashoffset: -40; }
+    }
+  </style>
+  <link rel="stylesheet" href="../../shared/atom-one-dark-labs.css" />
+  <style>
+    [data-theme="dark"] .card,
+    [data-theme="dark"] .prompt-box,
+    [data-theme="dark"] .token-lane,
+    [data-theme="dark"] .candidate-item,
+    [data-theme="dark"] .explain-box,
+    [data-theme="dark"] .stage-detail,
+    [data-theme="dark"] .data-pane,
+    [data-theme="dark"] .data-view,
+    [data-theme="dark"] .stage-chip,
+    [data-theme="dark"] button {
+      background: #232933;
+      border-color: var(--line);
+    }
+
+    [data-theme="dark"] .card h2,
+    [data-theme="dark"] .card h3,
+    [data-theme="dark"] .meta-line,
+    [data-theme="dark"] .candidate-prob,
+    [data-theme="dark"] .explain-box,
+    [data-theme="dark"] .stage-detail,
+    [data-theme="dark"] .data-helper,
+    [data-theme="dark"] .data-pane h3,
+    [data-theme="dark"] .legend span,
+    [data-theme="dark"] .switch,
+    [data-theme="dark"] .prompt-box,
+    [data-theme="dark"] .stage-chip,
+    [data-theme="dark"] .live-note {
+      color: var(--od-text);
+    }
+
+    [data-theme="dark"] .hero,
+    [data-theme="dark"] .profile-badge,
+    [data-theme="dark"] .live-note {
+      border-color: rgba(97, 175, 239, 0.4);
+    }
+
+    [data-theme="dark"] .token,
+    [data-theme="dark"] .candidate-token,
+    [data-theme="dark"] button,
+    [data-theme="dark"] .profile-badge {
+      color: var(--od-text-hi);
+    }
+
+    [data-theme="dark"] .token.cursor {
+      color: var(--od-text-hi);
+    }
+
+    [data-theme="dark"] #dataCard .data-helper {
+      color: var(--od-text-hi);
+    }
+
+    [data-theme="dark"] #dataCard .data-view {
+      background: #141b26;
+      border-color: rgba(97, 175, 239, 0.58);
+      color: #eef4ff;
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero" aria-labelledby="hero-title">
+      <h1 id="hero-title">LLM Architecture Primer: Single-Graph Autoregressive Flow</h1>
+      <p>
+        Follow one decode loop from prompt and system context to a generated token. The same graph updates across 10 stages so you can see how
+        prefill builds the KV cache, decode reads cached K/V with Q, and the loop appends a token before stopping or repeating.
+      </p>
+    </section>
+
+    <section class="lab-grid" aria-label="Autoregressive architecture lab">
+      <article id="controlsCard" class="card" aria-label="Controls">
+        <h2>Controls</h2>
+
+        <div class="prompt-box">
+          <strong>System context</strong>
+          <span id="systemPromptText">Be concise, factual, and explain the mechanism in one sentence.</span>
+          <strong>User prompt</strong>
+          <span id="userPromptText">Explain how solar panels turn sunlight into electricity.</span>
+        </div>
+
+        <div class="switches">
+          <label class="switch"><input id="toggleMoe" type="checkbox" /> MoE routing</label>
+          <label class="switch"><input id="toggleRag" type="checkbox" checked /> RAG retrieval</label>
+          <label class="switch"><input id="toggleMemory" type="checkbox" checked /> Memory return</label>
+          <label class="switch"><input id="toggleTool" type="checkbox" /> Tool return</label>
+        </div>
+
+        <p id="profileBadge" class="profile-badge">Profile: RAG + Memory</p>
+        <p class="meta-line">Keyboard: Left/Right = previous/next stage, Home/End = first/last stage.</p>
+      </article>
+
+      <article id="wordsCard" class="card" aria-label="Words">
+        <h2>Words</h2>
+
+        <div class="token-group">
+          <h3>Context tokens lane</h3>
+          <div id="contextLane" class="token-lane"></div>
+        </div>
+
+        <div class="token-group">
+          <h3>Generated tokens lane</h3>
+          <div id="generatedLane" class="token-lane"></div>
+          <p id="positionNote" class="meta-line"></p>
+        </div>
+
+        <div class="token-group">
+          <h3>Top 5 next-token candidates</h3>
+          <ul id="candidateList" class="candidate-list"></ul>
+        </div>
+
+        <p id="chosenLine" class="explain-box"><strong>Chosen token:</strong> pending until stage 8.</p>
+        <p id="beforeLine" class="explain-box"><strong>Before step:</strong> Stage details appear here.</p>
+        <p id="afterLine" class="explain-box"><strong>After step:</strong> Stage details appear here.</p>
+
+        <p id="stageLive" class="live-note" aria-live="polite" aria-atomic="true">Stage updates will appear here.</p>
+      </article>
+
+      <article id="graphCard" class="card" aria-label="Graph">
+        <h2>Graph</h2>
+        <div class="graph-wrap" tabindex="0" aria-label="Architecture graph canvas; horizontal scroll available">
+          <svg id="graph" viewBox="0 0 2880 420" role="img" aria-label="Single autoregressive architecture graph"></svg>
+        </div>
+        <div class="legend">
+          <span class="l-current">Current stage (strong)</span>
+          <span class="l-past">Past stages (medium)</span>
+          <span class="l-future">Future stages (faint)</span>
+          <span class="l-pulse">Pulse on current edges</span>
+        </div>
+      </article>
+
+      <article id="dataCard" class="card" aria-label="Data Representation">
+        <h2>Data Representation</h2>
+        <p id="dataMeta" class="data-helper">Abstract input and output representation for the highlighted stage.</p>
+        <div class="data-split">
+          <section class="data-pane" aria-label="Abstract input representation">
+            <h3>Input</h3>
+            <pre id="dataInputView" class="data-view"></pre>
+          </section>
+          <section class="data-pane" aria-label="Abstract output representation">
+            <h3>Output</h3>
+            <pre id="dataOutputView" class="data-view"></pre>
+          </section>
+        </div>
+        <p id="dataTransform" class="data-helper"></p>
+      </article>
+
+      <article id="stagesCard" class="card" aria-label="Execution Stage">
+        <h2>Execution Stage</h2>
+        <div id="stageChips" class="stage-grid"></div>
+        <div class="nav-row">
+          <button id="stepBack" type="button">&larr; Back</button>
+          <button id="stepForward" type="button">Forward &rarr;</button>
+        </div>
+        <p id="stageDetail" class="stage-detail">Select a stage to inspect the autoregressive loop.</p>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const stages = [
+      {
+        name: "Prompt + System Context",
+        before: "The loop has not started; only instruction text exists.",
+        after: "Prompt and system context are merged into one model context window."
+      },
+      {
+        name: "Tokenize Input",
+        before: "Raw text must become token IDs before transformer math.",
+        after: "The tokenizer emits input tokens ready for embedding and prefill."
+      },
+      {
+        name: "Prefill Transformer (build KV cache)",
+        before: "Token IDs exist, but no cached history vectors are available.",
+        after: "Prefill processes all input tokens and writes K/V states to cache."
+      },
+      {
+        name: "Start Decode Step (current position)",
+        before: "A decode slot is opened at the next token position.",
+        after: "The model focuses on one autoregressive step at the current position."
+      },
+      {
+        name: "Compute Attention (Q vs cached K/V)",
+        before: "Current token state must query past cached context.",
+        after: "Attention weights mix relevant cached values into the current state."
+      },
+      {
+        name: "Run MLP + Residual Update",
+        before: "Attention output needs nonlinear transformation.",
+        after: "MLP path updates the residual stream for next-token prediction."
+      },
+      {
+        name: "Project to Logits",
+        before: "Hidden state is not yet aligned to vocabulary space.",
+        after: "A logits vector scores every possible next token."
+      },
+      {
+        name: "Sample / Select Next Token",
+        before: "Logits exist, but no token is committed.",
+        after: "Decoding policy selects one next token from top candidates."
+      },
+      {
+        name: "Append Token + Update KV Cache",
+        before: "Chosen token exists conceptually but is not in sequence.",
+        after: "Token is appended and cache is extended for the next step."
+      },
+      {
+        name: "Stop or Repeat Loop",
+        before: "The decoder evaluates whether generation should continue.",
+        after: "If stop criterion is met, output is finalized; otherwise decode repeats."
+      }
+    ];
+
+    const graphNodes = {
+      prompt: { x: 30, y: 120, w: 150, h: 48, label: "Prompt" },
+      system: { x: 30, y: 202, w: 150, h: 48, label: "System Ctx" },
+      ragQuery: { x: 30, y: 286, w: 150, h: 48, label: "RAG Query" },
+      retriever: { x: 210, y: 286, w: 150, h: 48, label: "Retriever" },
+      retrieved: { x: 390, y: 286, w: 150, h: 48, label: "Retrieved Ctx" },
+
+      tokenizer: { x: 220, y: 160, w: 150, h: 48, label: "Tokenizer" },
+      inputTokens: { x: 400, y: 160, w: 150, h: 48, label: "Input Tokens" },
+      prefill: { x: 580, y: 160, w: 150, h: 48, label: "Prefill Block" },
+      kvCache: { x: 770, y: 74, w: 150, h: 48, label: "KV Cache" },
+      decodePos: { x: 770, y: 246, w: 150, h: 48, label: "Decode Pos" },
+
+      qNode: { x: 950, y: 202, w: 150, h: 48, label: "Q Projection" },
+      attention: { x: 1130, y: 160, w: 150, h: 48, label: "Attention" },
+      memoryBank: { x: 950, y: 286, w: 150, h: 48, label: "Memory Bank" },
+
+      denseMlp: { x: 1310, y: 200, w: 150, h: 48, label: "Dense MLP" },
+      router: { x: 1310, y: 92, w: 150, h: 48, label: "MoE Router" },
+      expertA: { x: 1490, y: 30, w: 130, h: 40, label: "Expert A" },
+      expertB: { x: 1490, y: 84, w: 130, h: 40, label: "Expert B" },
+      expertC: { x: 1490, y: 138, w: 130, h: 40, label: "Expert C" },
+      expertMerge: { x: 1650, y: 84, w: 150, h: 48, label: "Expert Merge" },
+
+      residual: { x: 1650, y: 200, w: 150, h: 48, label: "Residual" },
+      logits: { x: 1830, y: 200, w: 150, h: 48, label: "Logits" },
+      sampler: { x: 2010, y: 200, w: 150, h: 48, label: "Sampler" },
+      nextToken: { x: 2190, y: 200, w: 150, h: 48, label: "Next Token" },
+      append: { x: 2370, y: 200, w: 150, h: 48, label: "Append" },
+      tool: { x: 2190, y: 294, w: 150, h: 48, label: "Tool Return" },
+      loop: { x: 2550, y: 200, w: 150, h: 48, label: "Stop/Repeat" },
+      output: { x: 2730, y: 136, w: 130, h: 40, label: "Final Output" },
+      repeat: { x: 2730, y: 250, w: 130, h: 40, label: "Repeat Decode" }
+    };
+
+    const graphEdges = [
+      { from: "prompt", to: "tokenizer", stage: 0, type: "forward" },
+      { from: "system", to: "tokenizer", stage: 0, type: "forward" },
+      { from: "prompt", to: "ragQuery", stage: 0, type: "forward", requires: "rag" },
+      { from: "ragQuery", to: "retriever", stage: 0, type: "forward", requires: "rag" },
+      { from: "retriever", to: "retrieved", stage: 0, type: "forward", requires: "rag" },
+      { from: "retrieved", to: "tokenizer", stage: 0, type: "return", requires: "rag" },
+
+      { from: "tokenizer", to: "inputTokens", stage: 1, type: "forward" },
+
+      { from: "inputTokens", to: "prefill", stage: 2, type: "forward" },
+      { from: "prefill", to: "kvCache", stage: 2, type: "forward" },
+
+      { from: "kvCache", to: "decodePos", stage: 3, type: "forward" },
+
+      { from: "decodePos", to: "qNode", stage: 4, type: "forward" },
+      { from: "qNode", to: "attention", stage: 4, type: "forward" },
+      { from: "kvCache", to: "attention", stage: 4, type: "forward" },
+      { from: "decodePos", to: "memoryBank", stage: 4, type: "forward", requires: "memory" },
+      { from: "memoryBank", to: "attention", stage: 4, type: "return", requires: "memory" },
+
+      { from: "attention", to: "denseMlp", stage: 5, type: "forward", disallow: "moe" },
+      { from: "denseMlp", to: "residual", stage: 5, type: "forward", disallow: "moe" },
+
+      { from: "attention", to: "router", stage: 5, type: "forward", requires: "moe" },
+      { from: "router", to: "expertA", stage: 5, type: "forward", requires: "moe" },
+      { from: "router", to: "expertB", stage: 5, type: "forward", requires: "moe" },
+      { from: "router", to: "expertC", stage: 5, type: "forward", requires: "moe" },
+      { from: "expertA", to: "expertMerge", stage: 5, type: "forward", requires: "moe" },
+      { from: "expertB", to: "expertMerge", stage: 5, type: "forward", requires: "moe" },
+      { from: "expertC", to: "expertMerge", stage: 5, type: "forward", requires: "moe" },
+      { from: "expertMerge", to: "residual", stage: 5, type: "forward", requires: "moe" },
+
+      { from: "residual", to: "logits", stage: 6, type: "forward" },
+
+      { from: "logits", to: "sampler", stage: 7, type: "forward" },
+      { from: "sampler", to: "nextToken", stage: 7, type: "forward" },
+
+      { from: "nextToken", to: "append", stage: 8, type: "forward" },
+      { from: "append", to: "kvCache", stage: 8, type: "forward" },
+
+      { from: "append", to: "loop", stage: 9, type: "forward" },
+      { from: "nextToken", to: "tool", stage: 9, type: "forward", requires: "tool" },
+      { from: "tool", to: "loop", stage: 9, type: "return", requires: "tool" },
+      { from: "loop", to: "output", stage: 9, type: "forward" },
+      { from: "loop", to: "repeat", stage: 9, type: "forward" },
+      { from: "repeat", to: "decodePos", stage: 9, type: "forward" }
+    ];
+
+    const stageNodes = [
+      ["prompt", "system", "ragQuery", "retriever", "retrieved", "tokenizer"],
+      ["tokenizer", "inputTokens"],
+      ["inputTokens", "prefill", "kvCache"],
+      ["kvCache", "decodePos"],
+      ["decodePos", "qNode", "attention", "kvCache", "memoryBank"],
+      ["attention", "denseMlp", "router", "expertA", "expertB", "expertC", "expertMerge", "residual"],
+      ["residual", "logits"],
+      ["logits", "sampler", "nextToken"],
+      ["nextToken", "append", "kvCache"],
+      ["append", "loop", "tool", "output", "repeat", "decodePos"]
+    ];
+
+    const systemTokens = ["System:", "Be", "concise", "factual", "and", "one-sentence", "."];
+    const promptTokens = ["Explain", "how", "solar", "panels", "turn", "sunlight", "into", "electricity", "."];
+    const ragTokens = ["Doc:", "photons", "free", "electrons", "in", "silicon", "."];
+
+    const generatedPrefix = ["Solar", "panels", "turn", "sunlight", "into"];
+
+    // Values are [token, logit] — raw scores from the final linear projection.
+    // Probabilities are computed later via softmax (logits → exp → normalize).
+    const baseCandidatesByStage = [
+      [["electricity", 2.4], ["power", 2.2], ["energy", 2.0], ["current", 1.5], ["heat", 1.2]],
+      [["electricity", 2.5], ["power", 2.2], ["energy", 1.9], ["current", 1.6], ["charge", 1.2]],
+      [["electricity", 3.0], ["power", 2.2], ["energy", 1.8], ["current", 1.5], ["charge", 1.3]],
+      [["electricity", 3.2], ["power", 2.1], ["energy", 1.7], ["current", 1.5], ["charge", 1.3]],
+      [["electricity", 3.5], ["power", 2.1], ["current", 1.8], ["energy", 1.5], ["charge", 1.1]],
+      [["electricity", 3.8], ["power", 2.1], ["current", 1.6], ["energy", 1.3], ["voltage", 1.0]],
+      [["electricity", 4.0], ["power", 2.1], ["current", 1.5], ["energy", 1.3], ["voltage", 1.0]],
+      [["electricity", 4.2], ["power", 2.1], ["current", 1.5], ["energy", 1.2], ["voltage", 0.9]],
+      [["electricity", 4.3], ["power", 2.0], ["current", 1.5], ["energy", 1.2], ["voltage", 0.9]],
+      [["electricity", 4.1], ["power", 2.1], ["current", 1.5], ["energy", 1.2], [".", 1.0]]
+    ];
+
+    const graphTheme = {
+      forward: "#61afef",
+      returnFlow: "#d19a66",
+      pulse: "#e06c75",
+      nodeStrong: "#3c638d",
+      nodeMedium: "#314760",
+      nodeFaint: "#253240",
+      nodeDisabled: "#1c2530",
+      strokeStrong: "#82add8",
+      strokeMedium: "#5f738d",
+      strokeFaint: "#48576d",
+      strokeDisabled: "#374152",
+      textStrong: "#f4f8ff",
+      textFaint: "#9da6b5"
+    };
+
+    const elements = {
+      toggleMoe: document.getElementById("toggleMoe"),
+      toggleRag: document.getElementById("toggleRag"),
+      toggleMemory: document.getElementById("toggleMemory"),
+      toggleTool: document.getElementById("toggleTool"),
+      profileBadge: document.getElementById("profileBadge"),
+      contextLane: document.getElementById("contextLane"),
+      generatedLane: document.getElementById("generatedLane"),
+      positionNote: document.getElementById("positionNote"),
+      candidateList: document.getElementById("candidateList"),
+      chosenLine: document.getElementById("chosenLine"),
+      beforeLine: document.getElementById("beforeLine"),
+      afterLine: document.getElementById("afterLine"),
+      stageLive: document.getElementById("stageLive"),
+      graph: document.getElementById("graph"),
+      dataMeta: document.getElementById("dataMeta"),
+      dataInputView: document.getElementById("dataInputView"),
+      dataOutputView: document.getElementById("dataOutputView"),
+      dataTransform: document.getElementById("dataTransform"),
+      stageChips: document.getElementById("stageChips"),
+      stageDetail: document.getElementById("stageDetail"),
+      stepBack: document.getElementById("stepBack"),
+      stepForward: document.getElementById("stepForward")
+    };
+
+    let activeStage = 0;
+    let stageChipButtons = [];
+
+    function readProfile() {
+      return {
+        moe: elements.toggleMoe.checked,
+        rag: elements.toggleRag.checked,
+        memory: elements.toggleMemory.checked,
+        tool: elements.toggleTool.checked
+      };
+    }
+
+    function profileLabel(profile) {
+      const parts = [];
+      if (profile.moe) parts.push("MoE");
+      if (profile.rag) parts.push("RAG");
+      if (profile.memory) parts.push("Memory");
+      if (profile.tool) parts.push("Tool");
+      return parts.length ? parts.join(" + ") : "Dense";
+    }
+
+    function softmax(logitMap) {
+      const entries = Array.from(logitMap.entries());
+      const maxLogit = Math.max(...entries.map(([, v]) => v));
+      const exps = entries.map(([token, logit]) => [token, Math.exp(logit - maxLogit)]);
+      const sumExp = exps.reduce((s, [, e]) => s + e, 0);
+      return exps.map(([token, e]) => ({ token, prob: e / sumExp }));
+    }
+
+    function edgeEnabled(profile, edge) {
+      if (edge.requires && !profile[edge.requires]) return false;
+      if (edge.disallow && profile[edge.disallow]) return false;
+      return true;
+    }
+
+    function nodeEnabled(profile, nodeId) {
+      if (["ragQuery", "retriever", "retrieved"].includes(nodeId)) return profile.rag;
+      if (nodeId === "memoryBank") return profile.memory;
+      if (nodeId === "tool") return profile.tool;
+      if (["router", "expertA", "expertB", "expertC", "expertMerge"].includes(nodeId)) return profile.moe;
+      if (nodeId === "denseMlp") return !profile.moe;
+      return true;
+    }
+
+    function nodeCenter(nodeId) {
+      const node = graphNodes[nodeId];
+      return { x: node.x + node.w / 2, y: node.y + node.h / 2 };
+    }
+
+    function nodeStatus(profile, nodeId, stageIndex) {
+      if (!nodeEnabled(profile, nodeId)) return "disabled";
+      const currentNodes = stageNodes[stageIndex] || [];
+      if (currentNodes.includes(nodeId)) return "current";
+
+      const seenInPast = stageNodes.slice(0, stageIndex).some((nodes) => nodes.includes(nodeId));
+      if (seenInPast) return "past";
+      return "future";
+    }
+
+    function adjustedCandidates(stageIndex, profile) {
+      const base = new Map(baseCandidatesByStage[Math.min(stageIndex, baseCandidatesByStage.length - 1)]);
+
+      // Profile adjustments add to logits (additive boosts in log-space)
+      if (profile.rag) base.set("electricity", (base.get("electricity") || 0) + 0.5);
+      if (profile.memory) base.set("electricity", (base.get("electricity") || 0) + 0.2);
+      if (profile.moe) base.set("power", (base.get("power") || 0) + 0.1);
+      if (profile.tool) base.set(".", (base.get(".") || 0.5) + 0.4);
+
+      // Sort by logit descending, take top 5
+      const ordered = Array.from(base.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      const top5Map = new Map(ordered);
+
+      // Apply softmax to convert logits → probabilities
+      const withProbs = softmax(top5Map);
+
+      return withProbs.map((row) => ({
+        token: row.token,
+        prob: row.prob,
+        logit: top5Map.get(row.token)
+      }));
+    }
+
+    function chosenToken(stageIndex, profile) {
+      const top = adjustedCandidates(stageIndex, profile)[0];
+      return top ? top.token : "electricity";
+    }
+
+    function renderContextLane(profile) {
+      const entries = [];
+      systemTokens.forEach((token) => entries.push({ token, cls: "system" }));
+      promptTokens.forEach((token) => entries.push({ token, cls: "" }));
+      if (profile.rag) {
+        ragTokens.forEach((token) => entries.push({ token, cls: "rag" }));
+      }
+
+      elements.contextLane.innerHTML = entries
+        .map(({ token, cls }) => `<span class="token ${cls}">${token}</span>`)
+        .join("");
+    }
+
+    function renderGeneratedLane(stageIndex, selectedToken) {
+      const laneTokens = [];
+      generatedPrefix.forEach((token) => laneTokens.push(`<span class="token generated">${token}</span>`));
+
+      if (stageIndex < 8) {
+        laneTokens.push('<span class="token cursor">[next]</span>');
+        elements.positionNote.textContent = `Current token position: ${generatedPrefix.length + 1} (prediction slot).`;
+      } else if (stageIndex === 8) {
+        laneTokens.push(`<span class="token generated selected">${selectedToken}</span>`);
+        elements.positionNote.textContent = `Current token position: ${generatedPrefix.length + 1} (selected, pending append).`;
+      } else {
+        laneTokens.push(`<span class="token generated">${selectedToken}</span>`);
+        laneTokens.push('<span class="token cursor">[next]</span>');
+        elements.positionNote.textContent = `Current token position: ${generatedPrefix.length + 2} (next decode slot).`;
+      }
+
+      elements.generatedLane.innerHTML = laneTokens.join("");
+    }
+
+    function renderCandidates(stageIndex, profile) {
+      if (stageIndex < 6) {
+        elements.candidateList.innerHTML =
+          '<li class="candidate-item"><span class="candidate-token" style="font-style:italic">Candidates are computed at stage 7 (Project to Logits).</span></li>';
+        return;
+      }
+      const rows = adjustedCandidates(stageIndex, profile);
+      elements.candidateList.innerHTML = rows
+        .map((row) => {
+          const percent = Math.round(row.prob * 100);
+          return `
+            <li class="candidate-item">
+              <span class="candidate-token">${row.token}</span>
+              <span class="candidate-prob">${percent}%</span>
+              <div class="prob-bar"><span style="width: ${percent}%;"></span></div>
+            </li>
+          `;
+        })
+        .join("");
+    }
+
+    function stageAfterText(stageIndex, profile) {
+      if (stageIndex === 0 && profile.rag) {
+        return "Prompt, system context, and retrieved snippets are fused before tokenization.";
+      }
+      if (stageIndex === 4 && profile.memory) {
+        return "Attention combines Q with cached K/V plus memory-return vectors.";
+      }
+      if (stageIndex === 5 && profile.moe) {
+        return "Router sends tokens to experts, then merged output updates residual stream.";
+      }
+      if (stageIndex === 9 && profile.tool) {
+        return "Loop checks stop criteria and optional tool-return signals before deciding to repeat.";
+      }
+      return stages[stageIndex].after;
+    }
+
+    function renderWords(stageIndex, profile) {
+      const selected = chosenToken(stageIndex, profile);
+      renderContextLane(profile);
+      renderGeneratedLane(stageIndex, selected);
+      renderCandidates(stageIndex, profile);
+
+      const chosenCopy = stageIndex >= 7
+        ? `<strong>Chosen token:</strong> ${selected}`
+        : "<strong>Chosen token:</strong> pending until stage 8 (Sample / Select Next Token).";
+      elements.chosenLine.innerHTML = chosenCopy;
+      elements.beforeLine.innerHTML = `<strong>Before step:</strong> ${stages[stageIndex].before}`;
+      elements.afterLine.innerHTML = `<strong>After step:</strong> ${stageAfterText(stageIndex, profile)}`;
+
+      elements.stageLive.textContent = `Stage ${stageIndex + 1} of ${stages.length}: ${stages[stageIndex].name}. ${stageAfterText(stageIndex, profile)}`;
+    }
+
+    function initStageChips() {
+      elements.stageChips.innerHTML = stages
+        .map((stage, index) => {
+          return `<button type="button" class="stage-chip" data-stage-index="${index}">${index + 1} ${stage.name}</button>`;
+        })
+        .join("");
+
+      stageChipButtons = Array.from(elements.stageChips.querySelectorAll(".stage-chip"));
+      stageChipButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const index = Number(button.getAttribute("data-stage-index"));
+          setStage(index);
+        });
+      });
+    }
+
+    function updateStageChips(stageIndex) {
+      stageChipButtons.forEach((button, index) => {
+        const isActive = index === stageIndex;
+        button.classList.toggle("active", isActive);
+        if (isActive) {
+          button.setAttribute("aria-current", "step");
+        } else {
+          button.removeAttribute("aria-current");
+        }
+      });
+    }
+
+    function renderGraph(stageIndex, profile) {
+      const markerForwardId = "marker-forward";
+      const markerReturnId = "marker-return";
+
+      const defs = `
+        <defs>
+          <marker id="${markerForwardId}" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 z" fill="${graphTheme.forward}"></path>
+          </marker>
+          <marker id="${markerReturnId}" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 z" fill="${graphTheme.returnFlow}"></path>
+          </marker>
+        </defs>
+      `;
+
+      const edgeSvg = graphEdges
+        .filter((edge) => edgeEnabled(profile, edge))
+        .map((edge) => {
+          const from = nodeCenter(edge.from);
+          const to = nodeCenter(edge.to);
+          const marker = edge.type === "return" ? `url(#${markerReturnId})` : `url(#${markerForwardId})`;
+          const strokeBase = edge.type === "return" ? graphTheme.returnFlow : graphTheme.forward;
+          const dash = edge.type === "return" ? "stroke-dasharray='9 6'" : "";
+
+          let opacity = 0.24;
+          let width = 1.25;
+          if (edge.stage < stageIndex) {
+            opacity = 0.62;
+            width = 2.05;
+          }
+          if (edge.stage === stageIndex) {
+            opacity = 0.98;
+            width = 3.35;
+          }
+
+          if (edge.type === "return") {
+            const midX = (from.x + to.x) / 2;
+            const midY = Math.max(from.y, to.y) + 60;
+            const pathD = `M${from.x},${from.y} Q${midX},${midY} ${to.x},${to.y}`;
+
+            const pulse = edge.stage === stageIndex
+              ? `<path d="${pathD}" fill="none" stroke="${graphTheme.pulse}" stroke-width="3.2" stroke-opacity="0.95" class="edge-pulse" ${dash}></path>`
+              : "";
+
+            return `
+              <path d="${pathD}" fill="none" stroke="${strokeBase}" stroke-width="${width}" stroke-opacity="${opacity}" marker-end="${marker}" ${dash}></path>
+              ${pulse}
+            `;
+          }
+
+          const pulse = edge.stage === stageIndex
+            ? `<line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" stroke="${graphTheme.pulse}" stroke-width="3.2" stroke-opacity="0.95" class="edge-pulse" ${dash}></line>`
+            : "";
+
+          return `
+            <line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" stroke="${strokeBase}" stroke-width="${width}" stroke-opacity="${opacity}" marker-end="${marker}" ${dash}></line>
+            ${pulse}
+          `;
+        })
+        .join("");
+
+      const nodeSvg = Object.entries(graphNodes)
+        .map(([id, node]) => {
+          const status = nodeStatus(profile, id, stageIndex);
+
+          let fill = graphTheme.nodeFaint;
+          let stroke = graphTheme.strokeFaint;
+          let text = graphTheme.textFaint;
+          let opacity = 1;
+
+          if (status === "current") {
+            fill = graphTheme.nodeStrong;
+            stroke = graphTheme.strokeStrong;
+            text = graphTheme.textStrong;
+          } else if (status === "past") {
+            fill = graphTheme.nodeMedium;
+            stroke = graphTheme.strokeMedium;
+            text = graphTheme.textStrong;
+          } else if (status === "future") {
+            fill = graphTheme.nodeFaint;
+            stroke = graphTheme.strokeFaint;
+            text = "#c9d2de";
+            opacity = 0.72;
+          } else if (status === "disabled") {
+            fill = graphTheme.nodeDisabled;
+            stroke = graphTheme.strokeDisabled;
+            text = graphTheme.textFaint;
+            opacity = 0.38;
+          }
+
+          return `
+            <g opacity="${opacity}">
+              <rect x="${node.x}" y="${node.y}" width="${node.w}" height="${node.h}" rx="10" fill="${fill}" stroke="${stroke}" stroke-width="1.2"></rect>
+              <text x="${node.x + node.w / 2}" y="${node.y + node.h / 2 + 4}" text-anchor="middle" font-size="11" font-weight="700" fill="${text}">${node.label}</text>
+            </g>
+          `;
+        })
+        .join("");
+
+      elements.graph.innerHTML = `${defs}${edgeSvg}${nodeSvg}`;
+    }
+
+    function renderStageDetail(stageIndex, profile) {
+      elements.stageDetail.textContent = `${stageIndex + 1}. ${stages[stageIndex].name}: ${stageAfterText(stageIndex, profile)}`;
+    }
+
+    function compactToken(token) {
+      const stripped = token.replace(/[^\w]/g, "").toLowerCase();
+      if (!stripped) return 100;
+      return 100 + Array.from(stripped).reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    }
+
+    function contextTokenStream(profile) {
+      const stream = [...systemTokens, ...promptTokens];
+      if (profile.rag) stream.push(...ragTokens);
+      return stream;
+    }
+
+    function generatedTokenStream(stageIndex, selectedToken) {
+      const stream = [...generatedPrefix];
+      if (stageIndex >= 9) {
+        stream.push(selectedToken);
+      }
+      return stream;
+    }
+
+    function numericVector(seed, size = 6) {
+      return Array.from({ length: size }, (_, index) => {
+        const value = ((seed * (index + 3) + 17 * index) % 997) / 997;
+        return Number(value.toFixed(3));
+      });
+    }
+
+    function buildStageData(stageIndex, profile) {
+      const contextWords = contextTokenStream(profile).slice(0, 10);
+      const contextIds = contextWords.map((word) => compactToken(word));
+      const selectedToken = chosenToken(stageIndex, profile);
+      const selectedId = compactToken(selectedToken);
+      const lastContextId = contextIds[contextIds.length - 1] || 100;
+      const systemText = systemTokens.join(" ");
+      const userText = promptTokens.join(" ");
+      const retrievalText = profile.rag ? ragTokens.join(" ") : "";
+
+      const queryVector = numericVector(lastContextId + 13);
+      const contextVector = numericVector(lastContextId + 47);
+      const hiddenVector = numericVector(lastContextId + 79);
+      const logitsTop = adjustedCandidates(stageIndex, profile).map((row) => ({
+        token: row.token,
+        logit: Number(row.logit.toFixed(3))
+      }));
+
+      const base = {
+        stage: `${stageIndex + 1}/${stages.length} ${stages[stageIndex].name}`,
+        profile: profileLabel(profile)
+      };
+
+      if (stageIndex === 0) {
+        const messageOrder = [
+          { role: "system", text: systemText },
+          { role: "user", text: userText }
+        ];
+        if (profile.rag) {
+          messageOrder.push({ role: "retrieval", text: retrievalText });
+        }
+
+        return {
+          ...base,
+          input: {
+            type: "separate_message_parts",
+            value: {
+              system_prompt: systemText,
+              user_prompt: userText,
+              retrieved_context: profile.rag ? retrievalText : "(disabled)"
+            }
+          },
+          output: {
+            type: "ordered_context_messages",
+            value: messageOrder
+          },
+          transformation: "Assemble message parts into one ordered context payload before tokenization."
+        };
+      }
+      if (stageIndex === 1) {
+        return {
+          ...base,
+          input: { type: "word_sequence", value: contextWords },
+          output: { type: "token_id_sequence", value: contextIds },
+          transformation: "Convert words to numeric token IDs."
+        };
+      }
+      if (stageIndex === 2) {
+        return {
+          ...base,
+          input: { type: "token_id_sequence", value: contextIds },
+          output: {
+            type: "kv_cache_vectors",
+            value: contextIds.slice(0, 3).map((id) => ({
+              token_id: id,
+              k: numericVector(id, 4),
+              v: numericVector(id + 31, 4)
+            }))
+          },
+          transformation: "Prefill builds K/V numeric vectors for each input token."
+        };
+      }
+      if (stageIndex === 3) {
+        return {
+          ...base,
+          input: { type: "kv_cache_state", value: { entries: contextIds.length, last_token_id: lastContextId } },
+          output: { type: "decode_step_state", value: { position: generatedPrefix.length + 1, query_seed_id: lastContextId } },
+          transformation: "Initialize one autoregressive decode position."
+        };
+      }
+      if (stageIndex === 4) {
+        return {
+          ...base,
+          input: { type: "query_plus_cache", value: { q: queryVector, kv_entries: contextIds.length } },
+          output: { type: "context_vector", value: contextVector },
+          transformation: "Attention maps query + cached vectors to one contextual numeric vector."
+        };
+      }
+      if (stageIndex === 5) {
+        return {
+          ...base,
+          input: { type: "context_vector", value: contextVector },
+          output: { type: profile.moe ? "expert_mixed_hidden_vector" : "dense_hidden_vector", value: hiddenVector },
+          transformation: profile.moe
+            ? "Route through experts then merge to a hidden numeric state."
+            : "Apply dense MLP to obtain next hidden numeric state."
+        };
+      }
+      if (stageIndex === 6) {
+        return {
+          ...base,
+          input: { type: "hidden_vector", value: hiddenVector },
+          output: { type: "vocab_logits", value: logitsTop },
+          transformation: "Project hidden vector into vocabulary score numbers."
+        };
+      }
+      if (stageIndex === 7) {
+        return {
+          ...base,
+          input: { type: "logits", value: logitsTop },
+          output: { type: "selected_token", value: { token: selectedToken, token_id: selectedId } },
+          transformation: "Sampling selects one token from numeric scores."
+        };
+      }
+      if (stageIndex === 8) {
+        return {
+          ...base,
+          input: { type: "previous_output_ids", value: generatedPrefix.map((token) => compactToken(token)) },
+          output: {
+            type: "updated_output_ids",
+            value: [...generatedPrefix.map((token) => compactToken(token)), selectedId]
+          },
+          transformation: "Append selected token ID to the generated sequence."
+        };
+      }
+
+      return {
+        ...base,
+        input: {
+          type: "updated_sequence_state",
+          value: [...generatedPrefix.map((token) => compactToken(token)), selectedId]
+        },
+        output: {
+          type: "loop_decision",
+          value: { continue: true, next_decode_position: generatedPrefix.length + 2 }
+        },
+        transformation: "Evaluate stop condition and either emit final output or continue decoding."
+      };
+    }
+
+    function renderDataRepresentation(stageIndex, profile) {
+      const data = buildStageData(stageIndex, profile);
+      elements.dataMeta.textContent = `${data.stage} | Profile: ${data.profile}`;
+      elements.dataInputView.textContent = JSON.stringify(data.input, null, 2);
+      elements.dataOutputView.textContent = JSON.stringify(data.output, null, 2);
+      elements.dataTransform.textContent = `Transformation: ${data.transformation}`;
+    }
+
+    function setStage(nextIndex) {
+      const bounded = Math.max(0, Math.min(stages.length - 1, nextIndex));
+      if (bounded === activeStage) return;
+      activeStage = bounded;
+      draw();
+    }
+
+    function step(delta) {
+      setStage(activeStage + delta);
+    }
+
+    function draw() {
+      const profile = readProfile();
+      elements.profileBadge.textContent = `Profile: ${profileLabel(profile)}`;
+
+      updateStageChips(activeStage);
+      renderWords(activeStage, profile);
+      renderGraph(activeStage, profile);
+      renderDataRepresentation(activeStage, profile);
+      renderStageDetail(activeStage, profile);
+
+      elements.stepBack.disabled = activeStage === 0;
+      elements.stepForward.disabled = activeStage === stages.length - 1;
+    }
+
+    [elements.toggleMoe, elements.toggleRag, elements.toggleMemory, elements.toggleTool].forEach((input) => {
+      input.addEventListener("change", () => draw());
+    });
+
+    elements.stepBack.addEventListener("click", () => step(-1));
+    elements.stepForward.addEventListener("click", () => step(1));
+
+    function shouldHandleGlobalShortcut(event) {
+      if (event.altKey || event.ctrlKey || event.metaKey) return false;
+
+      const target = event.target;
+      if (!(target instanceof Element)) return true;
+      if (target.isContentEditable) return false;
+
+      const tag = target.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return false;
+
+      // Let users use native arrow/home/end behavior inside scrollable graph container.
+      if (target.closest(".graph-wrap")) return false;
+      return true;
+    }
+
+    document.addEventListener("keydown", (event) => {
+      if (!shouldHandleGlobalShortcut(event)) return;
+
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        step(-1);
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        step(1);
+      } else if (event.key === "Home") {
+        event.preventDefault();
+        setStage(0);
+      } else if (event.key === "End") {
+        event.preventDefault();
+        setStage(stages.length - 1);
+      }
+    });
+
+    initStageChips();
+    draw();
+  </script>
+</body>
+</html>

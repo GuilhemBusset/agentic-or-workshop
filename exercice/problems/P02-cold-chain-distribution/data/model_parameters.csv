@@ -1,0 +1,7 @@
+parameter,value
+spoilage_rate_per_period,0.06
+critical_station_min_fill_rate,0.95
+noncritical_station_min_fill_rate,0.85
+unmet_penalty_critical,28
+unmet_penalty_noncritical,16
+reliability_risk_penalty_per_unit,5

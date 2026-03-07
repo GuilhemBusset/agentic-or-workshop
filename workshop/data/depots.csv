@@ -1,0 +1,7 @@
+depot_id,name,capacity,fixed_cost
+D01,North Hub,220,3200
+D02,River Hub,180,2800
+D03,Central Hub,240,3600
+D04,Valley Hub,160,2500
+D05,South Hub,210,3100
+D06,Frontier Hub,170,2700

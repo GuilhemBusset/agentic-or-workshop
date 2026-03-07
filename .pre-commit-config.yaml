@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: non-regression-tests
+        name: Run non-regression tests
+        entry: uv run pytest tests/non_regression -q
+        language: system
+        pass_filenames: false
+        always_run: true

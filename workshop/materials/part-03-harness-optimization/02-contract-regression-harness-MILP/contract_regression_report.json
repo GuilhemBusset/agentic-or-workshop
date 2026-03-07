@@ -1,0 +1,294 @@
+{
+  "all_open_comparison": {
+    "all_open": {
+      "components": {
+        "component_total": 18605.4225,
+        "cvar_shortage_risk": 0.0,
+        "expected_shortage_penalty": 0.0,
+        "expected_transport_cost": 705.4225,
+        "fixed_opening_cost": 17900.0
+      },
+      "eta": 0.0,
+      "expected_unmet_demand": 0.0,
+      "objective": 18605.422499999997,
+      "open_depots": {
+        "D01": 1,
+        "D02": 1,
+        "D03": 1,
+        "D04": 1,
+        "D05": 1,
+        "D06": 1
+      },
+      "shortage_by_scenario": {
+        "S01": 0.0,
+        "S02": 0.0,
+        "S03": 0.0,
+        "S04": 0.0,
+        "S05": 0.0,
+        "S06": 0.0,
+        "S07": 0.0,
+        "S08": 0.0
+      },
+      "solver_status": "Optimal",
+      "total_unmet_demand": 0.0
+    },
+    "all_open_objective": 18605.422499999997,
+    "baseline_objective": 5957.5887500000035
+  },
+  "baseline": {
+    "components": {
+      "component_total": 5957.58875,
+      "cvar_shortage_risk": 0.0,
+      "expected_shortage_penalty": 0.0,
+      "expected_transport_cost": 757.58875,
+      "fixed_opening_cost": 5200.0
+    },
+    "eta": 0.0,
+    "expected_unmet_demand": 0.0,
+    "objective": 5957.5887500000035,
+    "open_depots": {
+      "D01": 0,
+      "D02": 0,
+      "D03": 0,
+      "D04": 1,
+      "D05": 0,
+      "D06": 1
+    },
+    "shortage_by_scenario": {
+      "S01": 0.0,
+      "S02": 0.0,
+      "S03": 0.0,
+      "S04": 0.0,
+      "S05": 0.0,
+      "S06": 0.0,
+      "S07": 0.0,
+      "S08": 0.0
+    },
+    "solver_status": "Optimal",
+    "total_unmet_demand": 0.0
+  },
+  "checks": {
+    "contract": [
+      {
+        "details": {
+          "model_class_is_milp": true
+        },
+        "id": "C01_model_class_milp",
+        "passed": true
+      },
+      {
+        "details": {
+          "critical_from_data": [
+            "T03",
+            "T04",
+            "T07",
+            "T12"
+          ],
+          "expected_critical_towns": [
+            "T03",
+            "T04",
+            "T07",
+            "T12"
+          ]
+        },
+        "id": "C02_critical_towns_exact",
+        "passed": true
+      },
+      {
+        "details": {
+          "violation_count": 0,
+          "worst_margin": 0.050000000000000044
+        },
+        "id": "C03_critical_service_floor",
+        "passed": true
+      },
+      {
+        "details": {
+          "max_violation": 0.0,
+          "violation_count": 0
+        },
+        "id": "C04_capacity_only_if_open",
+        "passed": true
+      },
+      {
+        "details": {
+          "abs_delta_objective_vs_components": 3.637978807091713e-12,
+          "abs_delta_reported_vs_components": 3.637978807091713e-12,
+          "component_total": 5957.58875,
+          "objective_value": 5957.5887500000035,
+          "reported_total_objective": 5957.5887500000035
+        },
+        "id": "C05_objective_component_consistency",
+        "passed": true
+      },
+      {
+        "details": {
+          "min_probability": 0.125,
+          "scenario_count": 8,
+          "total_probability": 1.0
+        },
+        "id": "C06_probability_contract",
+        "passed": true
+      },
+      {
+        "details": {
+          "solver_status": "Optimal"
+        },
+        "id": "C07_solver_status_ok",
+        "passed": true
+      }
+    ],
+    "regression": [
+      {
+        "details": {
+          "all_contracts_passed": true,
+          "required_contract_ids": [
+            "C01_model_class_milp",
+            "C02_critical_towns_exact",
+            "C03_critical_service_floor",
+            "C04_capacity_only_if_open",
+            "C05_objective_component_consistency",
+            "C06_probability_contract",
+            "C07_solver_status_ok"
+          ]
+        },
+        "id": "R01_baseline_contract_checked_solve",
+        "passed": true
+      },
+      {
+        "details": {
+          "all_open_objective": 18605.422499999997,
+          "baseline_objective": 5957.5887500000035,
+          "lhs_le_rhs_plus_tol": true
+        },
+        "id": "R02_all_open_baseline_comparison",
+        "passed": true
+      },
+      {
+        "details": {
+          "baseline_design_under_bumped_objective": 7257.5887500000035,
+          "bumped_optimum_objective": 7257.5887500000035,
+          "fixed_cost_multiplier": 1.25,
+          "lhs_le_rhs_plus_tol": true
+        },
+        "id": "R03_fixed_cost_bump_perturbation",
+        "passed": true
+      },
+      {
+        "details": {
+          "demand_multiplier": 1.15,
+          "expected_unmet_demand": 8.06875,
+          "solver_status": "Optimal",
+          "total_unmet_demand": 64.55
+        },
+        "id": "R04_stressed_demand_fixed_design_recourse",
+        "passed": true
+      }
+    ]
+  },
+  "fixed_cost_bump": {
+    "baseline_design_evaluation_under_bumped": {
+      "components": {
+        "component_total": 7257.58875,
+        "cvar_shortage_risk": 0.0,
+        "expected_shortage_penalty": 0.0,
+        "expected_transport_cost": 757.58875,
+        "fixed_opening_cost": 6500.0
+      },
+      "eta": 0.0,
+      "expected_unmet_demand": 0.0,
+      "objective": 7257.5887500000035,
+      "open_depots": {
+        "D01": 0,
+        "D02": 0,
+        "D03": 0,
+        "D04": 1,
+        "D05": 0,
+        "D06": 1
+      },
+      "shortage_by_scenario": {
+        "S01": 0.0,
+        "S02": 0.0,
+        "S03": 0.0,
+        "S04": 0.0,
+        "S05": 0.0,
+        "S06": 0.0,
+        "S07": 0.0,
+        "S08": 0.0
+      },
+      "solver_status": "Optimal",
+      "total_unmet_demand": 0.0
+    },
+    "bumped_optimum": {
+      "components": {
+        "component_total": 7257.58875,
+        "cvar_shortage_risk": 0.0,
+        "expected_shortage_penalty": 0.0,
+        "expected_transport_cost": 757.58875,
+        "fixed_opening_cost": 6500.0
+      },
+      "eta": 0.0,
+      "expected_unmet_demand": 0.0,
+      "objective": 7257.5887500000035,
+      "open_depots": {
+        "D01": 0,
+        "D02": 0,
+        "D03": 0,
+        "D04": 1,
+        "D05": 0,
+        "D06": 1
+      },
+      "shortage_by_scenario": {
+        "S01": 0.0,
+        "S02": 0.0,
+        "S03": 0.0,
+        "S04": 0.0,
+        "S05": 0.0,
+        "S06": 0.0,
+        "S07": 0.0,
+        "S08": 0.0
+      },
+      "solver_status": "Optimal",
+      "total_unmet_demand": 0.0
+    },
+    "fixed_cost_multiplier": 1.25
+  },
+  "harness_id": "contract_regression_harness_milp",
+  "overall_passed": true,
+  "schema_version": 1,
+  "stressed_demand_fixed_design_recourse": {
+    "demand_multiplier": 1.15,
+    "stressed_recourse": {
+      "components": {
+        "component_total": 7359.1627124999995,
+        "cvar_shortage_risk": 345.5,
+        "expected_shortage_penalty": 968.25,
+        "expected_transport_cost": 845.4127125,
+        "fixed_opening_cost": 5200.0
+      },
+      "eta": 34.55,
+      "expected_unmet_demand": 8.06875,
+      "objective": 7359.162712500006,
+      "open_depots": {
+        "D01": 0,
+        "D02": 0,
+        "D03": 0,
+        "D04": 1,
+        "D05": 0,
+        "D06": 1
+      },
+      "shortage_by_scenario": {
+        "S01": 0.0,
+        "S02": 0.0,
+        "S03": 0.0,
+        "S04": 34.55,
+        "S05": 0.0,
+        "S06": 10.4,
+        "S07": 0.0,
+        "S08": 19.6
+      },
+      "solver_status": "Optimal",
+      "total_unmet_demand": 64.55
+    }
+  }
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mise+UV Install Test"
+  short_description: "Provision toolchain, sync deps, run tests"
+  default_prompt: "Install project dependencies with mise and uv, then run pytest and report results."

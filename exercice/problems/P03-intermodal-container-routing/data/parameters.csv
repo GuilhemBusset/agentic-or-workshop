@@ -1,0 +1,5 @@
+parameter,value
+planning_days,5
+global_emission_cap_kg,260000
+unmoved_volume_penalty_per_teu,300
+max_contracts_per_mode,2

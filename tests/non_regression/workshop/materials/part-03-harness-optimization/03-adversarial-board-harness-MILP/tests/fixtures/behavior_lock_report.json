@@ -1,0 +1,471 @@
+{
+  "board_decision": {
+    "eligible_ranking": [
+      {
+        "baseline_objective": 5957.5887500000035,
+        "board_score": 0.45,
+        "candidate_id": "candidate_balanced",
+        "open_depot_count": 2,
+        "stressed_critical_unmet": 7.74,
+        "stressed_total_unmet": 124.80000000000001
+      },
+      {
+        "baseline_objective": 5957.5887500000035,
+        "board_score": 0.45,
+        "candidate_id": "candidate_resilience",
+        "open_depot_count": 2,
+        "stressed_critical_unmet": 7.74,
+        "stressed_total_unmet": 124.80000000000001
+      },
+      {
+        "baseline_objective": 5532.570124999999,
+        "board_score": 0.55,
+        "candidate_id": "candidate_cost_lean",
+        "open_depot_count": 1,
+        "stressed_critical_unmet": 19.38,
+        "stressed_total_unmet": 769.2
+      }
+    ],
+    "tie_break_order": [
+      "lower stressed critical unmet",
+      "lower stressed total unmet",
+      "lexicographic candidate_id"
+    ],
+    "tie_tolerance": 1e-09,
+    "winner_board_score": 0.45,
+    "winner_candidate_id": "candidate_balanced"
+  },
+  "board_scoring": {
+    "candidate_scores": {
+      "candidate_balanced": {
+        "board_score": 0.45,
+        "normalized_baseline_objective": 1.0,
+        "normalized_open_depot_count": 1.0,
+        "normalized_stressed_critical_unmet": 0.0,
+        "normalized_stressed_total_unmet": 0.0,
+        "raw_baseline_objective": 5957.5887500000035,
+        "raw_open_depot_count": 2.0,
+        "raw_stressed_critical_unmet": 7.74,
+        "raw_stressed_total_unmet": 124.80000000000001
+      },
+      "candidate_cost_lean": {
+        "board_score": 0.55,
+        "normalized_baseline_objective": 0.0,
+        "normalized_open_depot_count": 0.0,
+        "normalized_stressed_critical_unmet": 1.0,
+        "normalized_stressed_total_unmet": 1.0,
+        "raw_baseline_objective": 5532.570124999999,
+        "raw_open_depot_count": 1.0,
+        "raw_stressed_critical_unmet": 19.38,
+        "raw_stressed_total_unmet": 769.2
+      },
+      "candidate_resilience": {
+        "board_score": 0.45,
+        "normalized_baseline_objective": 1.0,
+        "normalized_open_depot_count": 1.0,
+        "normalized_stressed_critical_unmet": 0.0,
+        "normalized_stressed_total_unmet": 0.0,
+        "raw_baseline_objective": 5957.5887500000035,
+        "raw_open_depot_count": 2.0,
+        "raw_stressed_critical_unmet": 7.74,
+        "raw_stressed_total_unmet": 124.80000000000001
+      }
+    },
+    "normalization": {
+      "epsilon": 1e-12,
+      "formula": "normalized=(x-min)/(max-min); if max-min<=epsilon then normalized=0.0",
+      "lower_is_better": true,
+      "method": "min_max",
+      "metric_bounds": {
+        "baseline_objective": {
+          "max": 5957.5887500000035,
+          "min": 5532.570124999999
+        },
+        "open_depot_count": {
+          "max": 2.0,
+          "min": 1.0
+        },
+        "stressed_critical_unmet": {
+          "max": 19.38,
+          "min": 7.74
+        },
+        "stressed_total_unmet": {
+          "max": 769.2,
+          "min": 124.80000000000001
+        }
+      }
+    },
+    "weights": {
+      "normalized_baseline_objective": 0.4,
+      "normalized_open_depot_count": 0.05,
+      "normalized_stressed_critical_unmet": 0.2,
+      "normalized_stressed_total_unmet": 0.35
+    }
+  },
+  "candidates": [
+    {
+      "baseline_summary": {
+        "demand_multiplier": 1.0,
+        "objective": 5532.570124999999,
+        "objective_components": {
+          "cvar_shortage_risk": 360.625,
+          "expected_shortage_penalty": 860.625,
+          "expected_transport_cost": 711.3201249999996,
+          "fixed_opening_cost": 3600.0,
+          "total_objective": 5532.570124999999
+        },
+        "open_depot_count": 1,
+        "open_depots": [
+          "D03"
+        ],
+        "status": "Optimal",
+        "unmet_metrics": {
+          "critical_unmet": 8.75,
+          "total_unmet": 324.0
+        }
+      },
+      "board_score": 0.55,
+      "board_score_components": {
+        "normalized_baseline_objective": 0.0,
+        "normalized_open_depot_count": 0.0,
+        "normalized_stressed_critical_unmet": 1.0,
+        "normalized_stressed_total_unmet": 1.0
+      },
+      "candidate_id": "candidate_cost_lean",
+      "contract_checks": [
+        {
+          "details": "Model is built as MILP with binary depot-open variables",
+          "id": "C01_model_class_milp",
+          "passed": true
+        },
+        {
+          "details": "All depot-open decisions are binary at solution tolerance",
+          "id": "C02_binary_open_decisions",
+          "passed": true
+        },
+        {
+          "details": "Critical towns exactly match {T03, T04, T07, T12}",
+          "id": "C03_critical_towns_exact",
+          "passed": true
+        },
+        {
+          "details": "Critical towns receive at least 95% service in every scenario",
+          "id": "C04_critical_service_floor",
+          "passed": true
+        },
+        {
+          "details": "Depot capacity can be used only when depot is open",
+          "id": "C05_capacity_only_if_open",
+          "passed": true
+        },
+        {
+          "details": "Objective components and independent rebuild are consistent",
+          "id": "C06_objective_component_consistency",
+          "passed": true
+        },
+        {
+          "details": "Scenario probabilities are valid; sum=1.00000000",
+          "id": "C07_probability_contract",
+          "passed": true
+        },
+        {
+          "details": "Solver status is 'Optimal'",
+          "id": "C08_solver_status_ok",
+          "passed": true
+        }
+      ],
+      "contract_eligible_for_board": true,
+      "parameters": {
+        "cvar_alpha": 0.8,
+        "cvar_weight": 5.0,
+        "effective_shortage_penalty": 21.25,
+        "shortage_penalty_multiplier": 0.85
+      },
+      "selected_as_winner": false,
+      "stress_summary": {
+        "demand_multiplier": 1.2,
+        "frozen_open_design": {
+          "D01": 0,
+          "D02": 0,
+          "D03": 1,
+          "D04": 0,
+          "D05": 0,
+          "D06": 0
+        },
+        "objective": 7001.33115,
+        "objective_components": {
+          "cvar_shortage_risk": 672.75,
+          "expected_shortage_penalty": 2043.1875000000002,
+          "expected_transport_cost": 685.3936499999999,
+          "fixed_opening_cost": 3600.0,
+          "total_objective": 7001.33115
+        },
+        "open_depot_count": 1,
+        "open_depots": [
+          "D03"
+        ],
+        "status": "Optimal",
+        "unmet_metrics": {
+          "critical_unmet": 19.38,
+          "total_unmet": 769.2
+        }
+      }
+    },
+    {
+      "baseline_summary": {
+        "demand_multiplier": 1.0,
+        "objective": 5957.5887500000035,
+        "objective_components": {
+          "cvar_shortage_risk": 0.0,
+          "expected_shortage_penalty": 0.0,
+          "expected_transport_cost": 757.5887499999997,
+          "fixed_opening_cost": 5200.0,
+          "total_objective": 5957.5887500000035
+        },
+        "open_depot_count": 2,
+        "open_depots": [
+          "D04",
+          "D06"
+        ],
+        "status": "Optimal",
+        "unmet_metrics": {
+          "critical_unmet": 0.0,
+          "total_unmet": 0.0
+        }
+      },
+      "board_score": 0.45,
+      "board_score_components": {
+        "normalized_baseline_objective": 1.0,
+        "normalized_open_depot_count": 1.0,
+        "normalized_stressed_critical_unmet": 0.0,
+        "normalized_stressed_total_unmet": 0.0
+      },
+      "candidate_id": "candidate_balanced",
+      "contract_checks": [
+        {
+          "details": "Model is built as MILP with binary depot-open variables",
+          "id": "C01_model_class_milp",
+          "passed": true
+        },
+        {
+          "details": "All depot-open decisions are binary at solution tolerance",
+          "id": "C02_binary_open_decisions",
+          "passed": true
+        },
+        {
+          "details": "Critical towns exactly match {T03, T04, T07, T12}",
+          "id": "C03_critical_towns_exact",
+          "passed": true
+        },
+        {
+          "details": "Critical towns receive at least 95% service in every scenario",
+          "id": "C04_critical_service_floor",
+          "passed": true
+        },
+        {
+          "details": "Depot capacity can be used only when depot is open",
+          "id": "C05_capacity_only_if_open",
+          "passed": true
+        },
+        {
+          "details": "Objective components and independent rebuild are consistent",
+          "id": "C06_objective_component_consistency",
+          "passed": true
+        },
+        {
+          "details": "Scenario probabilities are valid; sum=1.00000000",
+          "id": "C07_probability_contract",
+          "passed": true
+        },
+        {
+          "details": "Solver status is 'Optimal'",
+          "id": "C08_solver_status_ok",
+          "passed": true
+        }
+      ],
+      "contract_eligible_for_board": true,
+      "parameters": {
+        "cvar_alpha": 0.8,
+        "cvar_weight": 11.0,
+        "effective_shortage_penalty": 25.0,
+        "shortage_penalty_multiplier": 1.0
+      },
+      "selected_as_winner": true,
+      "stress_summary": {
+        "demand_multiplier": 1.2,
+        "frozen_open_design": {
+          "D01": 0,
+          "D02": 0,
+          "D03": 0,
+          "D04": 1,
+          "D05": 0,
+          "D06": 1
+        },
+        "objective": 6938.652450000006,
+        "objective_components": {
+          "cvar_shortage_risk": 490.04999999999995,
+          "expected_shortage_penalty": 390.0,
+          "expected_transport_cost": 858.6024500000002,
+          "fixed_opening_cost": 5200.0,
+          "total_objective": 6938.652450000006
+        },
+        "open_depot_count": 2,
+        "open_depots": [
+          "D04",
+          "D06"
+        ],
+        "status": "Optimal",
+        "unmet_metrics": {
+          "critical_unmet": 7.74,
+          "total_unmet": 124.80000000000001
+        }
+      }
+    },
+    {
+      "baseline_summary": {
+        "demand_multiplier": 1.0,
+        "objective": 5957.5887500000035,
+        "objective_components": {
+          "cvar_shortage_risk": 0.0,
+          "expected_shortage_penalty": 0.0,
+          "expected_transport_cost": 757.5887499999997,
+          "fixed_opening_cost": 5200.0,
+          "total_objective": 5957.5887500000035
+        },
+        "open_depot_count": 2,
+        "open_depots": [
+          "D04",
+          "D06"
+        ],
+        "status": "Optimal",
+        "unmet_metrics": {
+          "critical_unmet": 0.0,
+          "total_unmet": 0.0
+        }
+      },
+      "board_score": 0.45,
+      "board_score_components": {
+        "normalized_baseline_objective": 1.0,
+        "normalized_open_depot_count": 1.0,
+        "normalized_stressed_critical_unmet": 0.0,
+        "normalized_stressed_total_unmet": 0.0
+      },
+      "candidate_id": "candidate_resilience",
+      "contract_checks": [
+        {
+          "details": "Model is built as MILP with binary depot-open variables",
+          "id": "C01_model_class_milp",
+          "passed": true
+        },
+        {
+          "details": "All depot-open decisions are binary at solution tolerance",
+          "id": "C02_binary_open_decisions",
+          "passed": true
+        },
+        {
+          "details": "Critical towns exactly match {T03, T04, T07, T12}",
+          "id": "C03_critical_towns_exact",
+          "passed": true
+        },
+        {
+          "details": "Critical towns receive at least 95% service in every scenario",
+          "id": "C04_critical_service_floor",
+          "passed": true
+        },
+        {
+          "details": "Depot capacity can be used only when depot is open",
+          "id": "C05_capacity_only_if_open",
+          "passed": true
+        },
+        {
+          "details": "Objective components and independent rebuild are consistent",
+          "id": "C06_objective_component_consistency",
+          "passed": true
+        },
+        {
+          "details": "Scenario probabilities are valid; sum=1.00000000",
+          "id": "C07_probability_contract",
+          "passed": true
+        },
+        {
+          "details": "Solver status is 'Optimal'",
+          "id": "C08_solver_status_ok",
+          "passed": true
+        }
+      ],
+      "contract_eligible_for_board": true,
+      "parameters": {
+        "cvar_alpha": 0.8,
+        "cvar_weight": 18.0,
+        "effective_shortage_penalty": 32.5,
+        "shortage_penalty_multiplier": 1.3
+      },
+      "selected_as_winner": false,
+      "stress_summary": {
+        "demand_multiplier": 1.2,
+        "frozen_open_design": {
+          "D01": 0,
+          "D02": 0,
+          "D03": 0,
+          "D04": 1,
+          "D05": 0,
+          "D06": 1
+        },
+        "objective": 7367.502450000005,
+        "objective_components": {
+          "cvar_shortage_risk": 801.9,
+          "expected_shortage_penalty": 506.99999999999994,
+          "expected_transport_cost": 858.6024500000002,
+          "fixed_opening_cost": 5200.0,
+          "total_objective": 7367.502450000005
+        },
+        "open_depot_count": 2,
+        "open_depots": [
+          "D04",
+          "D06"
+        ],
+        "status": "Optimal",
+        "unmet_metrics": {
+          "critical_unmet": 7.74,
+          "total_unmet": 124.80000000000001
+        }
+      }
+    }
+  ],
+  "constants": {
+    "base_shortage_penalty": 25.0,
+    "board_tie_tolerance": 1e-09,
+    "contract_check_ids": [
+      "C01_model_class_milp",
+      "C02_binary_open_decisions",
+      "C03_critical_towns_exact",
+      "C04_critical_service_floor",
+      "C05_capacity_only_if_open",
+      "C06_objective_component_consistency",
+      "C07_probability_contract",
+      "C08_solver_status_ok"
+    ],
+    "critical_service_floor": 0.95,
+    "required_critical_towns": [
+      "T03",
+      "T04",
+      "T07",
+      "T12"
+    ],
+    "stress_demand_multiplier": 1.2
+  },
+  "data_inputs": [
+    "depots.csv",
+    "towns.csv",
+    "arcs.csv",
+    "scenarios.csv",
+    "scenario_demands.csv"
+  ],
+  "harness": "adversarial_board_harness_milp",
+  "problem_source": "workshop/materials/part-01-explorer-paradigm/00-problem/exercise-statement.md",
+  "winner": {
+    "board_score": 0.45,
+    "candidate_id": "candidate_balanced",
+    "selection_rule": "lowest board_score with deterministic tie-break"
+  }
+}

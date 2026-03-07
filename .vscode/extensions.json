@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+        "charliermarsh.ruff",
+        "astral-sh.ty",
+        "ms-vscode.live-server",
+        "mechatroner.rainbow-csv",
+        "pomdtr.excalidraw-editor"
+    ]
+}

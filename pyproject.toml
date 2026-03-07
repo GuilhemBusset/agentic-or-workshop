@@ -1,0 +1,24 @@
+[project]
+name = "codingwithagent"
+version = "0.1.0"
+description = "Workshop materials for teaching agentic coding to PhD students in optimization research."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { file = "LICENSE" }
+dependencies = [
+    "duckdb>=1.4.4",
+    "fastapi>=0.133.1",
+    "mcp>=1.26.0",
+    "pulp>=3.3.0",
+    "rich>=14.3.3",
+    "uvicorn>=0.41.0",
+    "xpress>=9.8.0",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.5.1",
+    "pytest>=9.0.2",
+    "ruff>=0.15.2",
+    "ty>=0.0.18",
+]

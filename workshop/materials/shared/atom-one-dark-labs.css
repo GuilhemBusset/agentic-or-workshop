@@ -1,0 +1,313 @@
+:root {
+  --od-bg-0: #1b1f27;
+  --od-bg-1: #21252b;
+  --od-bg-2: #282c34;
+  --od-bg-3: #2f3440;
+  --od-border: #3e4451;
+  --od-border-strong: #4b5263;
+  --od-text: #abb2bf;
+  --od-text-hi: #e6eaf2;
+  --od-muted: #7f848e;
+  --od-blue: #61afef;
+  --od-cyan: #56b6c2;
+  --od-green: #98c379;
+  --od-yellow: #e5c07b;
+  --od-orange: #d19a66;
+  --od-red: #e06c75;
+  --od-purple: #c678dd;
+
+  --bg: var(--od-bg-0);
+  --bg-alt: #171b22;
+  --bg-1: var(--od-bg-0);
+  --bg-2: #191e26;
+  --panel: var(--od-bg-2);
+  --paper: var(--od-bg-2);
+  --ink: var(--od-text);
+  --muted: var(--od-muted);
+  --accent: var(--od-blue);
+  --accent-2: var(--od-cyan);
+  --warn: var(--od-yellow);
+  --bad: var(--od-red);
+  --good: var(--od-green);
+  --risk: var(--od-red);
+  --line: var(--od-border);
+  --teal: var(--od-cyan);
+  --orange: var(--od-orange);
+  --rose: var(--od-red);
+  --green: var(--od-green);
+  --shadow: 0 14px 34px rgba(0, 0, 0, 0.34);
+  --radius: 14px;
+}
+
+html,
+body {
+  background:
+    radial-gradient(circle at 12% 10%, rgba(97, 175, 239, 0.13), transparent 34%),
+    radial-gradient(circle at 88% 8%, rgba(198, 120, 221, 0.11), transparent 32%),
+    linear-gradient(180deg, #1a1e26, #151922) !important;
+  color: var(--ink) !important;
+  font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+strong {
+  color: var(--od-text-hi);
+}
+
+.hero,
+.card,
+.panel,
+.controls,
+.control-grid,
+.prompt-card,
+.checklist,
+.chk,
+.profile,
+.switch,
+.status,
+.legend,
+.help-tooltip,
+.stage-explain,
+.insights,
+.metric,
+.metric-box,
+.curve-wrap,
+.graph-card,
+.graph-wrap,
+.callout,
+.footer,
+.foot {
+  background: var(--panel) !important;
+  border-color: var(--line) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.hero {
+  background: linear-gradient(132deg, #282f3d 0%, #303748 55%, #243043 100%) !important;
+}
+
+.hero p,
+.note,
+.hint,
+.meta,
+.footer-note,
+.status,
+.switch,
+.control label,
+.legend,
+#status,
+#statusText,
+#datasetStamp {
+  color: var(--muted) !important;
+}
+
+.app,
+.page {
+  color: var(--ink);
+}
+
+select,
+button,
+textarea,
+input[type="text"],
+input[type="number"] {
+  color: var(--ink) !important;
+  background: var(--od-bg-1) !important;
+  border: 1px solid var(--line) !important;
+}
+
+textarea,
+code,
+pre,
+.value,
+.metric-main {
+  font-family: "IBM Plex Mono", "Cascadia Code", "Consolas", monospace;
+}
+
+textarea {
+  background: #20242d !important;
+  color: var(--od-text-hi) !important;
+}
+
+button {
+  cursor: pointer;
+  font-weight: 700;
+  background: linear-gradient(180deg, #323846 0%, #2a303c 100%) !important;
+}
+
+button:hover,
+.hero-link:hover,
+.next-link:hover {
+  border-color: var(--accent-2) !important;
+  background: #364055 !important;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.next-link:focus-visible,
+.hero-link:focus-visible {
+  outline: 2px solid rgba(97, 175, 239, 0.65) !important;
+  outline-offset: 1px;
+}
+
+button.primary,
+button.active {
+  color: #e8f4ff !important;
+  border-color: var(--accent) !important;
+  background: linear-gradient(180deg, #32455d, #27374c) !important;
+}
+
+input[type="range"] {
+  accent-color: var(--accent);
+}
+
+input[type="checkbox"] {
+  accent-color: var(--accent-2);
+}
+
+.hero-link,
+.next-link,
+a {
+  color: #9cd2ff;
+}
+
+.hero-link,
+.next-link {
+  border-color: rgba(97, 175, 239, 0.52) !important;
+  background: rgba(97, 175, 239, 0.12) !important;
+}
+
+.chip,
+.pill {
+  color: #eef7ff !important;
+  border: 1px solid rgba(97, 175, 239, 0.68) !important;
+  background: linear-gradient(180deg, rgba(97, 175, 239, 0.36), rgba(86, 182, 194, 0.24)) !important;
+  font-weight: 700;
+}
+
+.panel h2,
+.panel h3,
+.card h3,
+.prompt-card h3,
+.metric-box h3,
+.insights h3,
+.curve-wrap h3,
+.graph-card h3 {
+  color: var(--od-text-hi) !important;
+}
+
+.graph-card h3 .pill {
+  color: #f6fbff !important;
+  border-color: rgba(97, 175, 239, 0.86) !important;
+  background: linear-gradient(180deg, rgba(97, 175, 239, 0.62), rgba(70, 139, 201, 0.5)) !important;
+}
+
+.stage-pill {
+  background: var(--od-bg-1) !important;
+  color: var(--muted) !important;
+  border-color: var(--line) !important;
+}
+
+.stage-pill.active {
+  background: rgba(86, 182, 194, 0.26) !important;
+  color: var(--od-text-hi) !important;
+  border-color: var(--accent-2) !important;
+}
+
+.value,
+.metric-main,
+#totalCost,
+#totalUnmet,
+#completenessValue,
+#ambiguityValue,
+#verificationValue,
+#reworkValue {
+  color: var(--od-text-hi) !important;
+}
+
+.ok,
+.risk-good {
+  color: var(--good) !important;
+}
+
+.warn,
+.risk-warn {
+  color: var(--warn) !important;
+}
+
+.bad,
+.error,
+.risk,
+.risk-bad {
+  color: var(--bad) !important;
+}
+
+.callout,
+.status,
+.stage-explain,
+.help-tooltip {
+  border-style: solid !important;
+}
+
+.legend,
+.help-tooltip {
+  backdrop-filter: blur(4px);
+}
+
+.list,
+ul,
+ol,
+.explain,
+.summary,
+#guidance,
+#judgeStatus,
+#stageExplain {
+  color: var(--ink);
+}
+
+#network,
+#graphA,
+#graphB,
+canvas {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(40, 45, 55, 0.76), rgba(28, 32, 40, 0.86)),
+    repeating-linear-gradient(45deg, rgba(97, 175, 239, 0.06), rgba(97, 175, 239, 0.06) 5px, transparent 5px, transparent 12px) !important;
+}
+
+.node-label {
+  fill: var(--od-text-hi);
+}
+
+.l-forward,
+.l-return,
+.l-pulse,
+.l-curated,
+.l-bloated {
+  color: var(--muted) !important;
+}
+
+.bar,
+.bar.risk {
+  background: #1c212a !important;
+  border-color: var(--line) !important;
+}
+
+.bar i {
+  background: linear-gradient(90deg, var(--accent-2), var(--accent)) !important;
+}
+
+.bar.risk i {
+  background: linear-gradient(90deg, var(--od-orange), var(--od-red)) !important;
+}
+
+::selection {
+  background: rgba(97, 175, 239, 0.35);
+  color: var(--od-text-hi);
+}

@@ -1,0 +1,6 @@
+parameter,value
+unmet_penalty_per_person,220
+delay_penalty_weight,1.0
+priority_delay_multiplier,1.4
+max_active_contraflow_groups_per_phase,4
+min_total_clearance_rate,0.9

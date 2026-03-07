@@ -1,0 +1,897 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Explorer Paradigm - Single Prompt Judge Lab</title>
+  <style>
+    :root {
+      --bg-1: #f8f3ea;
+      --bg-2: #e8f0ea;
+      --panel: #fffdf8;
+      --ink: #1f2e3c;
+      --muted: #5d6a76;
+      --accent: #bb4d27;
+      --accent-2: #2f7a6b;
+      --risk: #983037;
+      --line: #c9baa5;
+      --good: #227846;
+      --warn: #b07717;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      color: var(--ink);
+      font-family: "Trebuchet MS", "Gill Sans", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(1200px 620px at 15% 0%, #fff7e7 0%, transparent 70%),
+        radial-gradient(1100px 580px at 90% 5%, #eaf6ef 0%, transparent 62%),
+        linear-gradient(180deg, var(--bg-1), var(--bg-2));
+    }
+
+    .app {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+      min-height: 100vh;
+      grid-template-rows: auto auto 1fr auto;
+    }
+
+    .hero {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: linear-gradient(120deg, #fffef9, #f8eddb 64%, #e8f2eb);
+      box-shadow: 0 8px 24px rgba(37, 29, 17, 0.08);
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(1.2rem, 2.1vw, 1.8rem);
+      letter-spacing: 0.02em;
+    }
+
+    .hero p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.35;
+      max-width: 1180px;
+    }
+
+    .controls {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: var(--panel);
+      display: grid;
+      grid-template-columns: repeat(8, minmax(120px, 1fr));
+      gap: 10px;
+      align-items: end;
+    }
+
+    .control {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .control label {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 700;
+    }
+
+    select,
+    input[type="range"],
+    button {
+      width: 100%;
+    }
+
+    select,
+    button {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px 10px;
+      color: var(--ink);
+      font: inherit;
+      background: #fff;
+    }
+
+    button {
+      font-weight: 700;
+      cursor: pointer;
+      background: linear-gradient(180deg, #fff, #f5efe2);
+    }
+
+    button.primary {
+      border-color: #be562f;
+      color: #8b3417;
+      background: linear-gradient(180deg, #fff4ef, #ffe0d1);
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel);
+      padding: 12px;
+      min-width: 0;
+    }
+
+    .panel h2 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+      letter-spacing: 0.01em;
+    }
+
+    .prompt-card {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      padding: 10px;
+      display: grid;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .prompt-card h3 {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 300px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 0.92rem;
+      line-height: 1.36;
+      color: #253749;
+      background: #fffdf8;
+      font-family: "Consolas", "Menlo", monospace;
+    }
+
+    .checklist {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .chk {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      border: 1px solid #e2d3be;
+      border-radius: 8px;
+      padding: 8px;
+      background: #fffdfa;
+    }
+
+    .chk input {
+      margin-top: 1px;
+    }
+
+    .chk strong {
+      display: block;
+      font-size: 0.86rem;
+      line-height: 1.2;
+    }
+
+    .chk span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.25;
+    }
+
+    .metrics {
+      display: grid;
+      gap: 10px;
+    }
+
+    .cards {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      padding: 8px;
+    }
+
+    .card h3 {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .value {
+      margin-top: 4px;
+      font-family: "Consolas", monospace;
+      font-size: 1.16rem;
+      font-weight: 700;
+    }
+
+    .bar {
+      margin-top: 6px;
+      border: 1px solid #ddd1bf;
+      border-radius: 999px;
+      height: 10px;
+      overflow: hidden;
+      background: #fbf5ec;
+    }
+
+    .bar > i {
+      display: block;
+      height: 100%;
+      width: 0;
+      transition: width 220ms ease;
+      background: linear-gradient(90deg, var(--accent-2), #6bb39f);
+    }
+
+    .bar.risk > i {
+      background: linear-gradient(90deg, #c55d3b, var(--risk));
+    }
+
+    .insights {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .insights h3 {
+      margin: 0;
+      font-size: 0.88rem;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .pill {
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-size: 0.77rem;
+      border: 1px solid #cebda6;
+      background: #fff7ec;
+      color: #7a4b1a;
+    }
+
+    .pill.ok {
+      background: #ebf9f2;
+      border-color: #8ccfb1;
+      color: #1f6c47;
+    }
+
+    .callout {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      background: linear-gradient(180deg, #fffdf8, #f3f7f3);
+      line-height: 1.4;
+      color: #2c3f50;
+      font-size: 0.9rem;
+    }
+
+    .status {
+      border: 1px solid #e2d3be;
+      border-radius: 8px;
+      padding: 8px;
+      font-size: 0.82rem;
+      color: #486173;
+      background: #fff9ee;
+    }
+
+    .status.loading {
+      color: #8a5200;
+      border-color: #dfb16c;
+      background: #fff3df;
+    }
+
+    .status.error {
+      color: #8f2430;
+      border-color: #d69aa0;
+      background: #fff0f1;
+    }
+
+    .list {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 6px;
+      font-size: 0.85rem;
+      line-height: 1.35;
+      color: #304556;
+    }
+
+    .list li code {
+      font-family: "Consolas", "Menlo", monospace;
+      background: #fbf2e5;
+      border: 1px solid #eadac5;
+      border-radius: 6px;
+      padding: 1px 4px;
+    }
+
+    .foot {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      padding: 10px 12px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.35;
+    }
+
+    @media (max-width: 1260px) {
+      .controls {
+        grid-template-columns: repeat(4, minmax(120px, 1fr));
+      }
+    }
+
+    @media (max-width: 1100px) {
+      .main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 780px) {
+      .checklist,
+      .cards {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        grid-template-columns: repeat(2, minmax(120px, 1fr));
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="../../shared/atom-one-dark-labs.css" />
+  <style>
+    /* Per-page visibility tuning on top of shared Atom One Dark theme */
+    .card h3,
+    .insights h3,
+    .control label,
+    .chk span,
+    .status,
+    .callout,
+    .list,
+    .foot {
+      color: var(--od-text) !important;
+    }
+
+    .chk strong,
+    .value {
+      color: var(--od-text-hi) !important;
+    }
+
+    .pill {
+      color: #f4d7b1 !important;
+      border-color: #7b5d3f !important;
+      background: rgba(209, 154, 102, 0.16) !important;
+    }
+
+    .pill.ok {
+      color: #c7ebcd !important;
+      border-color: #5b8a68 !important;
+      background: rgba(152, 195, 121, 0.18) !important;
+    }
+
+    .status.loading {
+      color: var(--warn) !important;
+      border-color: #83652f !important;
+      background: rgba(229, 192, 123, 0.14) !important;
+    }
+
+    .status.error {
+      color: var(--bad) !important;
+      border-color: #8c4950 !important;
+      background: rgba(224, 108, 117, 0.14) !important;
+    }
+
+    .list li code {
+      color: #d7deea !important;
+      background: #1f2530 !important;
+      border-color: var(--line) !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section class="hero">
+      <h1>Explorer Paradigm Lab: Generic Single Prompt Judge</h1>
+      <p>
+        Write one prompt and evaluate its contract quality. Use parameter toggles to observe how judge behavior shifts with
+        thinking effort, strictness, specificity bias, and evidence depth.
+      </p>
+    </section>
+
+    <section class="controls">
+      <div class="control">
+        <label for="stage">Stage</label>
+        <select id="stage">
+          <option value="generic">Generic</option>
+          <option value="lp">Transportation LP</option>
+          <option value="mip">Facility Location MILP</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="mode">Lens</label>
+        <select id="mode">
+          <option value="single">Single</option>
+          <option value="team">Team</option>
+          <option value="review">Reviewer</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="specificity">Specificity Bias</label>
+        <input id="specificity" type="range" min="0" max="100" value="45" />
+      </div>
+      <div class="control">
+        <label for="thinkingEffort">Thinking Effort</label>
+        <select id="thinkingEffort">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="strictness">Strictness</label>
+        <select id="strictness">
+          <option value="relaxed">Relaxed</option>
+          <option value="standard" selected>Standard</option>
+          <option value="strict">Strict</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="evidenceDepth">Evidence Depth</label>
+        <select id="evidenceDepth">
+          <option value="minimal">Minimal</option>
+          <option value="standard" selected>Standard</option>
+          <option value="detailed">Detailed</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="judgeEndpoint">Judge Endpoint</label>
+        <select id="judgeEndpoint">
+          <option value="http://127.0.0.1:8008/judge">Local FastAPI (:8008)</option>
+        </select>
+      </div>
+      <div class="control">
+        <label>Actions</label>
+        <button class="primary" id="evaluateBtn">Evaluate Prompt</button>
+        <button id="loadExample">Load Stage Example</button>
+      </div>
+    </section>
+
+    <section class="main">
+      <section class="panel">
+        <h2>Prompt Studio</h2>
+        <article class="prompt-card">
+          <h3>Prompt Under Evaluation</h3>
+          <textarea id="promptText"></textarea>
+        </article>
+        <div class="checklist" id="checklist"></div>
+      </section>
+
+      <section class="panel metrics">
+        <h2>Contract Diagnostics</h2>
+        <div class="cards">
+          <article class="card">
+            <h3>Completeness</h3>
+            <div id="completenessValue" class="value">0%</div>
+            <div class="bar"><i id="completenessBar"></i></div>
+          </article>
+          <article class="card">
+            <h3>Ambiguity Risk</h3>
+            <div id="ambiguityValue" class="value">0%</div>
+            <div class="bar risk"><i id="ambiguityBar"></i></div>
+          </article>
+          <article class="card">
+            <h3>Verification Readiness</h3>
+            <div id="verificationValue" class="value">0%</div>
+            <div class="bar"><i id="verificationBar"></i></div>
+          </article>
+          <article class="card">
+            <h3>Expected Rework Risk</h3>
+            <div id="reworkValue" class="value">0%</div>
+            <div class="bar risk"><i id="reworkBar"></i></div>
+          </article>
+        </div>
+
+        <article class="insights">
+          <h3>Coverage</h3>
+          <div id="coveragePills" class="pill-row"></div>
+        </article>
+
+        <article class="insights">
+          <h3>Guidance</h3>
+          <div id="guidance" class="callout"></div>
+          <div id="judgeStatus" class="status">Waiting for evaluation.</div>
+        </article>
+
+        <article class="insights">
+          <h3>Parameter Effects</h3>
+          <ul id="effectsList" class="list"></ul>
+        </article>
+
+        <article class="insights">
+          <h3>Evidence</h3>
+          <ul id="evidenceList" class="list"></ul>
+        </article>
+      </section>
+    </section>
+
+    <section class="foot" id="footer">
+      External LLM judge required (Codex or Claude Code backend). Run the local judge service, then evaluate repeatedly while changing controls.
+    </section>
+  </div>
+
+  <script>
+    const checklistItems = [
+      { id: "goal", label: "Goal Clarity", desc: "Require explicit objective and scope." },
+      { id: "allowed", label: "Allowed Context", desc: "Require explicit allowed files/data." },
+      { id: "forbidden", label: "Forbidden Context", desc: "Require explicit out-of-scope boundaries." },
+      { id: "schema", label: "Output Schema", desc: "Require expected output fields/shape." },
+      { id: "checks", label: "Acceptance Checks", desc: "Require verifiable completion tests." },
+      { id: "failure", label: "Failure Handling", desc: "Require ambiguity/error handling instructions." }
+    ];
+
+    const presets = {
+      generic: `Goal: implement a Prompt Delta Coach panel in the single-shot judge lab UI.
+Allowed context:
+- workshop/materials/part-00-fundamental/02-prompt-quality/00-explorer-single-shot-lab.html
+- workshop/materials/part-00-fundamental/02-prompt-quality/llm_judge_service.py
+Forbidden context:
+- Changes to judge scoring schema or response fields
+Required output schema:
+- files_changed
+- implementation_summary
+- acceptance_checks
+Acceptance checks:
+- Panel shows: before/after prompt diff, top 3 blocking issues, and one next rewrite action linked to weakest metric.
+- Existing Evaluate Prompt flow still works with no API changes.
+Failure handling:
+- If judge output is missing fields, render a safe fallback message and continue.`,
+      lp: `Goal: implement an LP-only contract guard in the part-02 single-agent workflow before solving.
+Allowed context:
+- workshop/materials/part-02-build-multi-agent/README.md
+- workshop/materials/part-02-build-multi-agent/00-single-agent-LP/prompt/prompt.md
+- workshop/materials/part-02-build-multi-agent/01-sub-agent-LP/prompt/prompt.md
+Forbidden context:
+- Any MILP-only logic (binary depot-open decisions) in this LP workflow
+LP model language requirements:
+- continuous nonnegative shipment variables (x_ij style flow language)
+- no binary/integer depot-open decisions
+- all depots treated as active assets
+- demand/capacity/service constraints and transport-cost objective framing
+Required output schema:
+- files_changed
+- lp_contract_guard_rules
+- integration_notes
+- acceptance_checks
+Failure handling:
+- If any requirement implies MILP behavior, stop and return a structured LP-scope violation.`,
+      mip: `Goal: implement a MILP contract validator in the part-03 unit-test harness workflow.
+Allowed context:
+- workshop/materials/part-03-harness-optimization/README.md
+- workshop/materials/part-03-harness-optimization/01-unit-test-harness-MILP/prompt/00-context-and-goal.md
+Forbidden context:
+- Rewriting the problem as LP-only
+MILP model requirements:
+- binary depot-open decisions (y_i or open_depot)
+- flow recourse decisions remain continuous
+- linking constraints: capacity usable only if depot is open
+- objective includes fixed opening + expected transport + shortage penalty (+ risk term)
+Required output schema:
+- files_changed
+- milp_validator_rules
+- integration_notes
+- acceptance_checks
+- contract_risks
+Failure handling:
+- If model class is unclear (LP vs MILP), ask one clarifying question before ranking designs.`
+    };
+
+    const checklistState = {
+      goal: true,
+      allowed: true,
+      forbidden: false,
+      schema: true,
+      checks: true,
+      failure: true
+    };
+
+    const checklistRoot = document.getElementById("checklist");
+    const stageEl = document.getElementById("stage");
+    const modeEl = document.getElementById("mode");
+    const specificityEl = document.getElementById("specificity");
+    const thinkingEffortEl = document.getElementById("thinkingEffort");
+    const strictnessEl = document.getElementById("strictness");
+    const evidenceDepthEl = document.getElementById("evidenceDepth");
+    const endpointEl = document.getElementById("judgeEndpoint");
+    const promptTextEl = document.getElementById("promptText");
+    const statusEl = document.getElementById("judgeStatus");
+
+    function renderChecklist() {
+      checklistRoot.innerHTML = "";
+      checklistItems.forEach((item) => {
+        const wrapper = document.createElement("label");
+        wrapper.className = "chk";
+        wrapper.innerHTML = `
+          <input type="checkbox" data-id="${item.id}" ${checklistState[item.id] ? "checked" : ""}>
+          <div>
+            <strong>${item.label}</strong>
+            <span>${item.desc}</span>
+          </div>
+        `;
+        checklistRoot.appendChild(wrapper);
+      });
+
+      checklistRoot.querySelectorAll("input[type='checkbox']").forEach((el) => {
+        el.addEventListener("change", (ev) => {
+          checklistState[ev.target.dataset.id] = ev.target.checked;
+          renderCoveragePills(null);
+          setStatus("Requirements changed. Click Evaluate Prompt.");
+        });
+      });
+    }
+
+    function setStatus(message, tone = "idle") {
+      statusEl.textContent = message;
+      statusEl.className = `status ${tone === "idle" ? "" : tone}`.trim();
+    }
+
+    function setMetric(id, value, risk = false) {
+      document.getElementById(`${id}Value`).textContent = `${Math.round(value)}%`;
+      document.getElementById(`${id}Bar`).style.width = `${value}%`;
+      const valueNode = document.getElementById(`${id}Value`);
+      valueNode.style.color = risk
+        ? (value > 65 ? "var(--risk)" : value > 35 ? "var(--warn)" : "var(--good)")
+        : (value > 65 ? "var(--good)" : value > 35 ? "var(--warn)" : "var(--risk)");
+    }
+
+    function renderCoveragePills(coverage) {
+      const root = document.getElementById("coveragePills");
+      root.innerHTML = "";
+      const mapping = {
+        goal: "goal_clarity",
+        allowed: "allowed_context",
+        forbidden: "forbidden_context",
+        schema: "output_schema",
+        checks: "acceptance_checks",
+        failure: "failure_handling"
+      };
+      checklistItems.forEach((item) => {
+        const key = mapping[item.id];
+        const isCovered = coverage ? coverage[key] : checklistState[item.id];
+        const pill = document.createElement("span");
+        pill.className = `pill ${isCovered ? "ok" : ""}`;
+        pill.textContent = isCovered ? `${item.label}: covered` : `${item.label}: missing`;
+        root.appendChild(pill);
+      });
+    }
+
+    function renderList(rootId, items, fallback) {
+      const root = document.getElementById(rootId);
+      root.innerHTML = "";
+      if (!items || items.length === 0) {
+        const li = document.createElement("li");
+        li.textContent = fallback;
+        root.appendChild(li);
+        return;
+      }
+      items.forEach((item) => {
+        const li = document.createElement("li");
+        if (typeof item === "string") {
+          li.textContent = item;
+        } else {
+          const strong = document.createElement("strong");
+          strong.textContent = item.finding;
+          const br = document.createElement("br");
+          const code = document.createElement("code");
+          code.textContent = item.excerpt;
+          li.appendChild(strong);
+          li.appendChild(br);
+          li.appendChild(code);
+        }
+        root.appendChild(li);
+      });
+    }
+
+    function renderGuidance(judgment) {
+      const guidance = document.getElementById("guidance");
+      const words = (promptTextEl.value.trim().match(/\S+/g) || []).length;
+      if (!judgment) {
+        guidance.innerHTML = `
+          <strong>Prompt words:</strong> ${words}<br>
+          Waiting for judge output.
+        `;
+        return;
+      }
+
+      guidance.innerHTML = `
+        <strong>Summary:</strong> ${judgment.summary}<br>
+        <strong>Prompt words:</strong> ${words}<br>
+        <strong>Confidence:</strong> ${judgment.confidence}<br>
+        <strong>Blocking issues:</strong>
+        <ul>${judgment.blocking_issues.map((x) => `<li>${x}</li>`).join("") || "<li>None</li>"}</ul>
+        <strong>Next improvements:</strong>
+        <ul>${judgment.improvement_actions.map((x) => `<li>${x}</li>`).join("") || "<li>None</li>"}</ul>
+      `;
+    }
+
+    function buildPayload() {
+      return {
+        stage: stageEl.value,
+        mode: modeEl.value,
+        specificity_bias: Number(specificityEl.value),
+        thinking_effort: thinkingEffortEl.value,
+        strictness: strictnessEl.value,
+        evidence_depth: evidenceDepthEl.value,
+        prompt_text: promptTextEl.value,
+        requirements: {
+          goal_clarity: checklistState.goal,
+          allowed_context: checklistState.allowed,
+          forbidden_context: checklistState.forbidden,
+          output_schema: checklistState.schema,
+          acceptance_checks: checklistState.checks,
+          failure_handling: checklistState.failure
+        }
+      };
+    }
+
+    async function evaluate() {
+      const endpoint = endpointEl.value;
+      const payload = buildPayload();
+
+      setStatus("Judge request in progress...", "loading");
+      document.getElementById("evaluateBtn").disabled = true;
+      const t0 = performance.now();
+      try {
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          let message = `HTTP ${response.status}`;
+          try {
+            const body = await response.json();
+            if (body.detail) {
+              message = body.detail;
+            }
+          } catch (err) {
+            console.warn("Failed to parse error body", err);
+          }
+          throw new Error(message);
+        }
+
+        const data = await response.json();
+        const elapsed = ((performance.now() - t0) / 1000).toFixed(1);
+        setMetric("completeness", data.completeness);
+        setMetric("ambiguity", data.ambiguity_risk, true);
+        setMetric("verification", data.verification_readiness);
+        setMetric("rework", data.rework_risk, true);
+        renderCoveragePills(data.coverage);
+        renderGuidance(data);
+        renderList("effectsList", data.parameter_effects, "No parameter notes returned.");
+        renderList("evidenceList", data.evidence, "No evidence excerpts returned.");
+        setStatus(`Judgment complete in ${elapsed}s.`);
+      } catch (error) {
+        const elapsed = ((performance.now() - t0) / 1000).toFixed(1);
+        setStatus(`Judge failed after ${elapsed}s: ${error.message}`, "error");
+      } finally {
+        document.getElementById("evaluateBtn").disabled = false;
+      }
+    }
+
+    function applyPreset() {
+      promptTextEl.value = presets[stageEl.value] || presets.generic;
+      renderGuidance(null);
+      renderCoveragePills(null);
+      renderList("effectsList", [], "No parameter notes returned.");
+      renderList("evidenceList", [], "No evidence excerpts returned.");
+      setStatus("Preset loaded. Click Evaluate Prompt.");
+    }
+
+    document.getElementById("evaluateBtn").addEventListener("click", evaluate);
+    document.getElementById("loadExample").addEventListener("click", applyPreset);
+
+    [stageEl, modeEl, specificityEl, thinkingEffortEl, strictnessEl, evidenceDepthEl, promptTextEl].forEach((el) => {
+      el.addEventListener("input", () => {
+        setStatus("Inputs changed. Click Evaluate Prompt to rerun.");
+      });
+      el.addEventListener("change", () => {
+        setStatus("Inputs changed. Click Evaluate Prompt to rerun.");
+      });
+    });
+
+    stageEl.addEventListener("change", applyPreset);
+
+    let currentBackend = "codex";
+
+    function adaptControls(backend) {
+      const label = document.querySelector('label[for="thinkingEffort"]');
+      const options = thinkingEffortEl.options;
+      if (backend === "claude-code") {
+        label.textContent = "Model Tier";
+        options[0].textContent = "Haiku (fast)";
+        options[1].textContent = "Sonnet (balanced)";
+        options[2].textContent = "Opus (thorough)";
+      } else {
+        label.textContent = "Thinking Effort";
+        options[0].textContent = "Low";
+        options[1].textContent = "Medium";
+        options[2].textContent = "High";
+      }
+      const footer = document.getElementById("footer");
+      const backendLabel = backend === "claude-code" ? "Claude Code" : "Codex";
+      footer.textContent = `Backend: ${backendLabel}. Run the local judge service, then evaluate repeatedly while changing controls.`;
+    }
+
+    async function detectBackend() {
+      try {
+        const judgeUrl = endpointEl.value;
+        const healthUrl = judgeUrl.replace(/\/judge$/, "/health");
+        const resp = await fetch(healthUrl, { signal: AbortSignal.timeout(3000) });
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.backend) {
+            currentBackend = data.backend;
+          }
+        }
+      } catch (_) {
+        // Detection failed — keep default "codex"
+      }
+      adaptControls(currentBackend);
+    }
+
+    endpointEl.addEventListener("change", detectBackend);
+
+    renderChecklist();
+    applyPreset();
+    detectBackend();
+  </script>
+</body>
+</html>

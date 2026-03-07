@@ -1,0 +1,13 @@
+town_id,name,base_demand,priority_flag,service_min
+T01,Aster,26,standard,0.70
+T02,Birch,24,standard,0.70
+T03,Cedar,21,critical,0.95
+T04,Dover,30,critical,0.95
+T05,Elm,18,standard,0.70
+T06,Fjord,20,standard,0.70
+T07,Grove,28,critical,0.95
+T08,Harbor,22,standard,0.70
+T09,Iron,17,standard,0.70
+T10,Juniper,19,standard,0.70
+T11,Kepler,16,standard,0.70
+T12,Lumen,23,critical,0.95
