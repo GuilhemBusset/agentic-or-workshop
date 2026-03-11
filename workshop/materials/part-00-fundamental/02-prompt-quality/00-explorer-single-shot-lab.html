@@ -577,21 +577,10 @@
     ];
 
     const presets = {
-      generic: `Goal: implement a Prompt Delta Coach panel in the single-shot judge lab UI.
-Allowed context:
-- workshop/materials/part-00-fundamental/02-prompt-quality/00-explorer-single-shot-lab.html
-- workshop/materials/part-00-fundamental/02-prompt-quality/llm_judge_service.py
-Forbidden context:
-- Changes to judge scoring schema or response fields
-Required output schema:
-- files_changed
-- implementation_summary
-- acceptance_checks
-Acceptance checks:
-- Panel shows: before/after prompt diff, top 3 blocking issues, and one next rewrite action linked to weakest metric.
-- Existing Evaluate Prompt flow still works with no API changes.
-Failure handling:
-- If judge output is missing fields, render a safe fallback message and continue.`,
+      generic: `Build me a nice web page for the prompt quality lab.
+It should let students type a prompt and see how good it is.
+Add some useful controls and make the results look practical.
+Use the judge service that's already in the project.`,
       lp: `Goal: implement an LP-only contract guard in the part-02 single-agent workflow before solving.
 Allowed context:
 - workshop/materials/part-02-build-multi-agent/README.md
@@ -633,12 +622,12 @@ Failure handling:
     };
 
     const checklistState = {
-      goal: true,
-      allowed: true,
+      goal: false,
+      allowed: false,
       forbidden: false,
-      schema: true,
-      checks: true,
-      failure: true
+      schema: false,
+      checks: false,
+      failure: false
     };
 
     const checklistRoot = document.getElementById("checklist");
