@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import csv
 from dataclasses import dataclass
+from pathlib import Path
 import warnings
 
 import xpress as xp
 
 warnings.simplefilter("ignore")
+
+DATA_DIR = Path(__file__).resolve().parents[3] / "data"
 
 
 @dataclass(frozen=True)
@@ -32,7 +36,7 @@ class LPData:
     capacity: dict[str, float]
     base_demand: dict[str, float]
     scenario_prob: dict[str, float]
-    scenario_multiplier: dict[str, float]
+    scenario_demand: dict[tuple[str, str], float]
     transport_cost: dict[tuple[str, str], float]
 
 
@@ -43,9 +47,9 @@ def planner_sub_agent() -> dict[str, float | str | bool]:
         "integer_variables_allowed": False,
         "all_depots_active": True,
         "critical_service_floor": 0.95,
-        "shortage_penalty": 12.0,
-        "cvar_alpha": 0.80,
-        "risk_weight": 24.0,
+        "shortage_penalty": 15.0,
+        "cvar_alpha": 0.85,
+        "risk_weight": 20.0,
         "intent_literal": "Do not create integer or binary variables. Keep all depots active and solve transportation only.",
     }
 
@@ -65,73 +69,54 @@ def prompt_writer_sub_agent(plan: dict[str, float | str | bool]) -> PromptContra
 
 
 def data_sub_agent() -> LPData:
-    depots = [f"D{i:02d}" for i in range(1, 7)]
-    towns = [f"T{i:02d}" for i in range(1, 13)]
-    scenarios = [f"S{i:02d}" for i in range(1, 9)]
+    depots: list[str] = []
+    capacity: dict[str, float] = {}
+    with open(DATA_DIR / "depots.csv", newline="") as f:
+        for row in csv.DictReader(f):
+            did = row["depot_id"]
+            depots.append(did)
+            capacity[did] = float(row["capacity"])
 
-    capacity = {
-        "D01": 300,
-        "D02": 260,
-        "D03": 280,
-        "D04": 220,
-        "D05": 210,
-        "D06": 320,
-    }
-    base_demand = {
-        "T01": 95,
-        "T02": 110,
-        "T03": 120,
-        "T04": 115,
-        "T05": 90,
-        "T06": 75,
-        "T07": 130,
-        "T08": 80,
-        "T09": 105,
-        "T10": 85,
-        "T11": 92,
-        "T12": 108,
-    }
-    scenario_prob = {
-        "S01": 0.10,
-        "S02": 0.10,
-        "S03": 0.15,
-        "S04": 0.15,
-        "S05": 0.10,
-        "S06": 0.10,
-        "S07": 0.15,
-        "S08": 0.15,
-    }
-    scenario_multiplier = {
-        "S01": 0.85,
-        "S02": 0.95,
-        "S03": 1.00,
-        "S04": 1.10,
-        "S05": 1.20,
-        "S06": 1.30,
-        "S07": 1.40,
-        "S08": 1.55,
-    }
+    towns: list[str] = []
+    critical_towns: set[str] = set()
+    base_demand: dict[str, float] = {}
+    with open(DATA_DIR / "towns.csv", newline="") as f:
+        for row in csv.DictReader(f):
+            tid = row["town_id"]
+            towns.append(tid)
+            base_demand[tid] = float(row["base_demand"])
+            if row["priority_flag"] == "critical":
+                critical_towns.add(tid)
 
-    def lane_cost(depot: str, town: str) -> float:
-        d_idx = int(depot[1:])
-        t_idx = int(town[1:])
-        return (
-            5.0
-            + 1.4 * abs(d_idx - ((t_idx - 1) % 6 + 1))
-            + ((d_idx * 7 + t_idx * 3) % 6)
-        )
+    transport_cost: dict[tuple[str, str], float] = {}
+    with open(DATA_DIR / "arcs.csv", newline="") as f:
+        for row in csv.DictReader(f):
+            transport_cost[row["depot_id"], row["town_id"]] = float(
+                row["shipping_cost"]
+            )
 
-    transport_cost = {(d, t): lane_cost(d, t) for d in depots for t in towns}
+    scenarios: list[str] = []
+    scenario_prob: dict[str, float] = {}
+    with open(DATA_DIR / "scenarios.csv", newline="") as f:
+        for row in csv.DictReader(f):
+            sid = row["scenario_id"]
+            scenarios.append(sid)
+            scenario_prob[sid] = float(row["probability"])
+
+    scenario_demand: dict[tuple[str, str], float] = {}
+    with open(DATA_DIR / "scenario_demands.csv", newline="") as f:
+        for row in csv.DictReader(f):
+            scenario_demand[row["scenario_id"], row["town_id"]] = float(row["demand"])
 
     return LPData(
         depots=depots,
         towns=towns,
         scenarios=scenarios,
-        critical_towns={"T03", "T04", "T07", "T12"},
+        critical_towns=critical_towns,
         capacity=capacity,
         base_demand=base_demand,
         scenario_prob=scenario_prob,
-        scenario_multiplier=scenario_multiplier,
+        scenario_demand=scenario_demand,
         transport_cost=transport_cost,
     )
 
@@ -184,7 +169,7 @@ def prompt_executor_sub_agent(
 
     for t in data.towns:
         for s in data.scenarios:
-            demand_st = data.base_demand[t] * data.scenario_multiplier[s]
+            demand_st = data.scenario_demand[s, t]
             model.addConstraint(
                 xp.Sum(ship[d, t, s] for d in data.depots) + unmet[t, s] == demand_st
             )
@@ -192,7 +177,7 @@ def prompt_executor_sub_agent(
     max_unmet_share = 1.0 - contract.critical_service_floor
     for t in data.critical_towns:
         for s in data.scenarios:
-            demand_st = data.base_demand[t] * data.scenario_multiplier[s]
+            demand_st = data.scenario_demand[s, t]
             model.addConstraint(unmet[t, s] <= max_unmet_share * demand_st)
 
     for s in data.scenarios:
@@ -294,7 +279,7 @@ def tester_sub_agent(
     critical_violations = []
     for t in data.critical_towns:
         for s in data.scenarios:
-            demand_st = data.base_demand[t] * data.scenario_multiplier[s]
+            demand_st = data.scenario_demand[s, t]
             threshold = max_unmet_share * demand_st
             if unmet_values[t, s] > threshold + tolerance:
                 critical_violations.append((t, s, unmet_values[t, s], threshold))

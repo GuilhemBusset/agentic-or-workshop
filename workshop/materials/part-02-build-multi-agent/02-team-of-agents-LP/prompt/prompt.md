@@ -1,59 +1,23 @@
 # Prompt Used (Team of Agents, LP-Only, Zero-Context)
 
-You start with zero prior knowledge of this project.
+Read the disaster-relief problem statement at `workshop/materials/part-01-explorer-paradigm/00-problem/exercise-statement.md` and the data files in `workshop/data/` (depots.csv, towns.csv, arcs.csv, scenarios.csv, scenario_demands.csv).
 
-## Mandatory Context Loading
-Load:
-1. `workshop/materials/part-01-explorer-paradigm/00-problem/exercise-statement.md`
-2. `workshop/data/README.md`
-3. `workshop/data`
+Solve this problem using a **team-of-agents** paradigm: create three competing solution pods, each with a different risk posture. Every pod has its own model builder, tester, and writer. A board then evaluates all pods and picks the best one.
 
-## Team Topology To Spawn
-Create multiple candidate pods. Every pod must contain:
-- `prompt_writer_team`
-- `prompt_executor_team`
-- `tester_team`
+The three pods should use these configurations:
+- **Pod A (cost-focused)**: risk_weight=10.0, shortage_penalty=8.0
+- **Pod B (balanced)**: risk_weight=24.0, shortage_penalty=12.0
+- **Pod C (risk-averse)**: risk_weight=40.0, shortage_penalty=20.0
 
-Global roles:
-- `strategy_team`: defines candidate set (for example different risk weights)
-- `data_team`: shared deterministic LP data
-- `board_team`: selects one tested candidate
-- `reporter_team`: publishes comparison + selected plan
+All pods share cvar_alpha=0.80 and critical_service_floor=0.95.
 
-## LP Contract Requirements (per pod)
-Each writer must require:
-- LP only (continuous variables)
-- no binary/integer variables
-- no depot-open optimization
-- all depots active
-- critical town service floor 95%
+Each pod must build a pure LP model (continuous variables only, no binary/integer variables). All depots stay active -- do not optimize depot-opening decisions. Critical towns (T03, T04, T07, T12) must receive at least 95% of their demand. Use `xpress` as the solver. Per-scenario demands come directly from `scenario_demands.csv`.
 
-## Executor Rule
-Each executor must follow its writer contract literally and refuse non-LP instructions.
+Each pod's tester verifies: LP-optimal status, no integer variables, all depots active, literal intent respected, critical service met, and objective consistency.
 
-## Tester Rule
-Each tester must output pass/fail for:
-- LP status
-- no integer variables
-- all depots active
-- literal intent respected
-- critical service respected
-- objective consistency
+The board selects among contract-respecting candidates using the governance score:
+`governance_score = expected_transport + expected_penalty + 15.0 * worst_scenario_unmet`
 
-## Board Rule
-Select among candidates with `contract_respected=True` using a transparent governance score.
+Output a comparison table of all candidates (showing risk_weight, shortage_penalty, objective, governance score), then print the selected plan details: candidate name, risk weight, shortage penalty, objective, depot list, cost breakdown, CVaR indicator, contract/tester status, and top expected shipment lanes.
 
-## Output Contract
-Print:
-- candidate comparison table
-- selected risk weight
-- selected plan metrics
-- prompt contract respected for selected plan
-- tester checks passed for selected plan
-- top expected shipment lanes
-
-## Implementation Constraints
-- Single executable Python file.
-- Use `xpress`.
-- Run with `uv run python <script.py>`.
-- Deterministic data and deterministic selection logic.
+Produce a single executable Python file using `xpress`, reading data from CSV files via `csv` and `pathlib`. Run with `uv run python <script.py>`.

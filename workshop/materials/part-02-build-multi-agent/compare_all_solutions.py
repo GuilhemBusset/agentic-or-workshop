@@ -1,4 +1,8 @@
-"""Run and compare the three LP strategy implementations side-by-side."""
+"""Run and compare the three LP strategy implementations side-by-side.
+
+Usage:
+    uv run python workshop/materials/part-02-build-multi-agent/compare_all_solutions.py
+"""
 
 from __future__ import annotations
 
@@ -100,7 +104,7 @@ def parse_result(name: str, script_path: Path, raw_output: str) -> StrategyResul
     if selected_match:
         selected_risk_weight = float(selected_match.group(1))
 
-    candidate_count = len(re.findall(r"risk_weight=", raw_output))
+    candidate_count = len(re.findall(r"risk_w=", raw_output))
 
     return StrategyResult(
         name=name,

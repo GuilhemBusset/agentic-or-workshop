@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import csv
 from dataclasses import dataclass
+from pathlib import Path
 import warnings
 
 import xpress as xp
 
 warnings.simplefilter("ignore")
+
+DATA_DIR = Path(__file__).resolve().parents[3] / "data"
 
 
 @dataclass(frozen=True)
@@ -33,106 +37,92 @@ class LPData:
     capacity: dict[str, float]
     base_demand: dict[str, float]
     scenario_prob: dict[str, float]
-    scenario_multiplier: dict[str, float]
+    scenario_demand: dict[tuple[str, str], float]
     transport_cost: dict[tuple[str, str], float]
 
 
 def strategy_team() -> dict[str, object]:
     return {
         "model_name_prefix": "team_agents_transport_lp",
-        "candidate_risk_weights": [8.0, 24.0, 45.0],
-        "shortage_penalty": 12.0,
+        "candidates": [
+            {
+                "name": "Pod-A (cost-focused)",
+                "risk_weight": 10.0,
+                "shortage_penalty": 8.0,
+            },
+            {"name": "Pod-B (balanced)", "risk_weight": 24.0, "shortage_penalty": 12.0},
+            {
+                "name": "Pod-C (risk-averse)",
+                "risk_weight": 40.0,
+                "shortage_penalty": 20.0,
+            },
+        ],
         "cvar_alpha": 0.80,
         "critical_service_floor": 0.95,
         "selection_rule": "Pick the feasible candidate with the smallest governance score.",
     }
 
 
+def _read_csv(filename: str) -> list[dict[str, str]]:
+    with open(DATA_DIR / filename, newline="") as fh:
+        return list(csv.DictReader(fh))
+
+
 def data_team() -> LPData:
-    depots = [f"D{i:02d}" for i in range(1, 7)]
-    towns = [f"T{i:02d}" for i in range(1, 13)]
-    scenarios = [f"S{i:02d}" for i in range(1, 9)]
+    depot_rows = _read_csv("depots.csv")
+    town_rows = _read_csv("towns.csv")
+    arc_rows = _read_csv("arcs.csv")
+    scenario_rows = _read_csv("scenarios.csv")
+    sd_rows = _read_csv("scenario_demands.csv")
 
-    capacity = {
-        "D01": 300,
-        "D02": 260,
-        "D03": 280,
-        "D04": 220,
-        "D05": 210,
-        "D06": 320,
-    }
-    base_demand = {
-        "T01": 95,
-        "T02": 110,
-        "T03": 120,
-        "T04": 115,
-        "T05": 90,
-        "T06": 75,
-        "T07": 130,
-        "T08": 80,
-        "T09": 105,
-        "T10": 85,
-        "T11": 92,
-        "T12": 108,
-    }
-    scenario_prob = {
-        "S01": 0.10,
-        "S02": 0.10,
-        "S03": 0.15,
-        "S04": 0.15,
-        "S05": 0.10,
-        "S06": 0.10,
-        "S07": 0.15,
-        "S08": 0.15,
-    }
-    scenario_multiplier = {
-        "S01": 0.85,
-        "S02": 0.95,
-        "S03": 1.00,
-        "S04": 1.10,
-        "S05": 1.20,
-        "S06": 1.30,
-        "S07": 1.40,
-        "S08": 1.55,
+    depots = [r["depot_id"] for r in depot_rows]
+    towns = [r["town_id"] for r in town_rows]
+    scenarios = [r["scenario_id"] for r in scenario_rows]
+
+    capacity = {r["depot_id"]: float(r["capacity"]) for r in depot_rows}
+    base_demand = {r["town_id"]: float(r["base_demand"]) for r in town_rows}
+    critical_towns = {
+        r["town_id"] for r in town_rows if r["priority_flag"] == "critical"
     }
 
-    def lane_cost(depot: str, town: str) -> float:
-        d_idx = int(depot[1:])
-        t_idx = int(town[1:])
-        return (
-            5.0
-            + 1.4 * abs(d_idx - ((t_idx - 1) % 6 + 1))
-            + ((d_idx * 7 + t_idx * 3) % 6)
-        )
-
-    transport_cost = {(d, t): lane_cost(d, t) for d in depots for t in towns}
+    scenario_prob = {r["scenario_id"]: float(r["probability"]) for r in scenario_rows}
+    scenario_demand = {
+        (r["scenario_id"], r["town_id"]): float(r["demand"]) for r in sd_rows
+    }
+    transport_cost = {
+        (r["depot_id"], r["town_id"]): float(r["shipping_cost"]) for r in arc_rows
+    }
 
     return LPData(
         depots=depots,
         towns=towns,
         scenarios=scenarios,
-        critical_towns={"T03", "T04", "T07", "T12"},
+        critical_towns=critical_towns,
         capacity=capacity,
         base_demand=base_demand,
         scenario_prob=scenario_prob,
-        scenario_multiplier=scenario_multiplier,
+        scenario_demand=scenario_demand,
         transport_cost=transport_cost,
     )
 
 
 def prompt_writer_team(
-    protocol: dict[str, object], risk_weight: float
+    protocol: dict[str, object], candidate: dict[str, object]
 ) -> PromptContract:
     return PromptContract(
-        candidate_name=f"risk_weight={risk_weight:.1f}",
-        model_name=f"{protocol['model_name_prefix']}_{int(risk_weight)}",
+        candidate_name=str(candidate["name"]),
+        model_name="{}_rw{}_sp{}".format(
+            protocol["model_name_prefix"],
+            int(candidate["risk_weight"]),
+            int(candidate["shortage_penalty"]),
+        ),
         model_class="LP",
         integer_variables_allowed=False,
         all_depots_active=True,
         critical_service_floor=float(protocol["critical_service_floor"]),
-        shortage_penalty=float(protocol["shortage_penalty"]),
+        shortage_penalty=float(candidate["shortage_penalty"]),
         cvar_alpha=float(protocol["cvar_alpha"]),
-        risk_weight=risk_weight,
+        risk_weight=float(candidate["risk_weight"]),
         intent_literal="Do not use binary/integer variables and do not optimize depot opening decisions.",
     )
 
@@ -183,7 +173,7 @@ def prompt_executor_team(contract: PromptContract, data: LPData) -> dict[str, ob
 
     for t in data.towns:
         for s in data.scenarios:
-            demand_st = data.base_demand[t] * data.scenario_multiplier[s]
+            demand_st = data.scenario_demand[s, t]
             model.addConstraint(
                 xp.Sum(ship[d, t, s] for d in data.depots) + unmet[t, s] == demand_st
             )
@@ -191,7 +181,7 @@ def prompt_executor_team(contract: PromptContract, data: LPData) -> dict[str, ob
     max_unmet_share = 1.0 - contract.critical_service_floor
     for t in data.critical_towns:
         for s in data.scenarios:
-            demand_st = data.base_demand[t] * data.scenario_multiplier[s]
+            demand_st = data.scenario_demand[s, t]
             model.addConstraint(unmet[t, s] <= max_unmet_share * demand_st)
 
     for s in data.scenarios:
@@ -271,6 +261,7 @@ def prompt_executor_team(contract: PromptContract, data: LPData) -> dict[str, ob
         "status": model.getProbStatusString(),
         "objective": float(model.getObjVal()),
         "risk_weight": contract.risk_weight,
+        "shortage_penalty": contract.shortage_penalty,
         "active_depots": list(data.depots),
         "expected_transport": expected_transport,
         "expected_penalty": expected_penalty,
@@ -294,7 +285,7 @@ def tester_team(
     violations = []
     for t in data.critical_towns:
         for s in data.scenarios:
-            demand_st = data.base_demand[t] * data.scenario_multiplier[s]
+            demand_st = data.scenario_demand[s, t]
             threshold = max_unmet_share * demand_st
             if unmet_values[t, s] > threshold + tolerance:
                 violations.append((t, s, unmet_values[t, s], threshold))
@@ -352,9 +343,12 @@ def reporter_team(
         result = item["result"]
         audit = item["audit"]
         print(
-            "  - {} | objective={:.2f} | expected_unmet={:.2f} | worst_unmet={:.2f} | "
-            "contract_ok={} | checks={}/{} | score={:.2f}".format(
+            "  - {} | risk_w={:.1f} short_p={:.1f} | obj={:.2f} | "
+            "exp_unmet={:.2f} | worst_unmet={:.2f} | "
+            "contract_ok={} | checks={}/{} | gov_score={:.2f}".format(
                 contract.candidate_name,
+                contract.risk_weight,
+                contract.shortage_penalty,
                 result["objective"],
                 result["expected_unmet"],
                 result["worst_scenario_unmet"],
@@ -371,7 +365,9 @@ def reporter_team(
     print("\nBoard-selected plan:")
     print(f"Prompt writer intent: {contract.intent_literal}")
     print(f"Solver status: {result['status']}")
+    print(f"Selected candidate: {contract.candidate_name}")
     print(f"Selected risk weight: {result['risk_weight']:.1f}")
+    print(f"Selected shortage penalty: {result['shortage_penalty']:.1f}")
     print(f"Objective value: {result['objective']:.2f}")
     print(f"Active depots: {', '.join(result['active_depots'])}")
     print(f"Expected transport cost: {result['expected_transport']:.2f}")
@@ -381,6 +377,7 @@ def reporter_team(
     print(f"Worst scenario unmet demand: {result['worst_scenario_unmet']:.2f}")
     print(f"Prompt contract respected: {audit['contract_respected']}")
     print(f"Tester checks passed: {audit['passed_count']}/{audit['total_count']}")
+    print(f"Governance score: {audit['governance_score']:.2f}")
     print("Top expected shipment lanes:")
     for (depot, town), volume in result["top_expected_lanes"]:
         print(f"  - {depot} -> {town}: {volume:.2f}")
@@ -391,8 +388,8 @@ def run_team_process() -> None:
     data = data_team()
 
     collected = []
-    for risk_weight in protocol["candidate_risk_weights"]:
-        contract = prompt_writer_team(protocol, float(risk_weight))
+    for candidate in protocol["candidates"]:
+        contract = prompt_writer_team(protocol, candidate)
         result = prompt_executor_team(contract, data)
         audit = tester_team(contract, result, data)
         collected.append({"contract": contract, "result": result, "audit": audit})
