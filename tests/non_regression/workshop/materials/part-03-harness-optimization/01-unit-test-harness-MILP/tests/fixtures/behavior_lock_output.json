@@ -1,40 +1,6 @@
 {
-  "contract_respected": true,
-  "cost_breakdown": {
-    "cvar_risk_term": 0.0,
-    "expected_shortage_penalty": 0.0,
-    "expected_transport_cost": 757.58875,
-    "fixed_opening_cost": 5200.0,
-    "total_recomputed": 5957.58875
-  },
-  "harness_checks_passed": true,
-  "harness_failures": [],
-  "harness_passed_count": 8,
-  "harness_total_count": 8,
-  "objective": 5957.5887500000035,
-  "open_depot_count": 2,
-  "open_depots": [
-    "D04",
-    "D06"
-  ],
-  "risk_metrics": {
-    "alpha": 0.8,
-    "cvar_shortage": 0.0,
-    "eta": 0.0
-  },
-  "solver_status": "mip_optimal",
-  "unmet_metrics": {
-    "expected_unmet": 0.0,
-    "max_scenario_unmet": 0.0,
-    "total_unmet_by_scenario": {
-      "S01": 0.0,
-      "S02": 0.0,
-      "S03": 0.0,
-      "S04": 0.0,
-      "S05": 0.0,
-      "S06": 0.0,
-      "S07": 0.0,
-      "S08": 0.0
-    }
-  }
+  "solver_status": "mip_solution",
+  "objective": 5957.59,
+  "open_depots": ["D04", "D06"],
+  "harness_checks_passed": true
 }

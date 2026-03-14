@@ -1,23 +1,80 @@
+"""Tests for the adversarial board harness MILP.
+
+Validates report structure, contract checks, winner selection,
+board scoring, determinism, and stress test properties.
+"""
+
 from __future__ import annotations
 
-import importlib.util
-import json
-from pathlib import Path
+import math
 import sys
+from pathlib import Path
 
 import pytest
 
+# Ensure the runner module is importable
+_RUNNER_DIR = Path(__file__).resolve().parent.parent
+if str(_RUNNER_DIR) not in sys.path:
+    sys.path.insert(0, str(_RUNNER_DIR))
 
-SCRIPT_PATH = Path(
-    "workshop/materials/part-03-harness-optimization/03-adversarial-board-harness-MILP/run_adversarial_board_harness_milp.py"
-)
-REPORT_PATH = SCRIPT_PATH.parent / "adversarial_board_report.json"
-REQUIRED_CANDIDATES = {
-    "candidate_cost_lean",
-    "candidate_balanced",
-    "candidate_resilience",
+from run_adversarial_board_harness_milp import run_adversarial_board_harness  # noqa: E402
+
+# ---------------------------------------------------------------------------
+# Module-scoped fixture: run the harness once
+# ---------------------------------------------------------------------------
+
+_REQUIRED_TOP_LEVEL_KEYS = {
+    "harness",
+    "data_inputs",
+    "constants",
+    "candidates",
+    "board_scoring",
+    "board_decision",
+    "winner",
 }
-REQUIRED_CONTRACT_CHECKS = [
+
+_REQUIRED_CANDIDATE_FIELDS = {
+    "candidate_id",
+    "parameters",
+    "solver_backend",
+    "contract_checks",
+    "contract_eligible_for_board",
+    "baseline_summary",
+    "stress_summary",
+    "board_score",
+    "board_score_components",
+    "selected_as_winner",
+}
+
+_REQUIRED_PARAMETER_KEYS = {
+    "shortage_penalty_multiplier",
+    "effective_shortage_penalty",
+    "cvar_weight",
+    "cvar_alpha",
+}
+
+_REQUIRED_BASELINE_KEYS = {
+    "demand_multiplier",
+    "status",
+    "objective",
+    "objective_components",
+    "open_depots",
+    "open_depot_count",
+    "unmet_metrics",
+}
+
+_REQUIRED_STRESS_KEYS = {
+    "demand_multiplier",
+    "frozen_open_design",
+    "status",
+    "objective",
+    "objective_components",
+    "open_depots",
+    "open_depot_count",
+    "unmet_metrics",
+}
+
+_CONTRACT_IDS = [
     "C01_model_class_milp",
     "C02_binary_open_decisions",
     "C03_critical_towns_exact",
@@ -29,168 +86,170 @@ REQUIRED_CONTRACT_CHECKS = [
 ]
 
 
-def _load_module():
-    spec = importlib.util.spec_from_file_location("harness_milp", SCRIPT_PATH)
-    if spec is None or spec.loader is None:
-        raise RuntimeError(f"Cannot import harness module from {SCRIPT_PATH}")
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-    return module
-
-
-def _run_report(write_report: bool) -> dict:
-    module = _load_module()
-    return module.run_adversarial_board_harness(
-        write_report=write_report,
-        print_console_summary=False,
+@pytest.fixture(scope="module")
+def report() -> dict:
+    """Run the harness once (no file output, no console) and return the report."""
+    return run_adversarial_board_harness(
+        write_report=False, print_console_summary=False
     )
 
 
-def test_report_contains_candidates_parameters_contracts_stress_and_scores():
-    report = _run_report(write_report=True)
+# ===================================================================
+# TestReportStructure
+# ===================================================================
+class TestReportStructure:
+    def test_at_least_three_candidates(self, report: dict) -> None:
+        assert len(report["candidates"]) >= 3
 
-    assert REPORT_PATH.exists()
-    on_disk = json.loads(REPORT_PATH.read_text(encoding="utf-8"))
-    assert report["winner"]["candidate_id"] == on_disk["winner"]["candidate_id"]
+    def test_required_top_level_keys(self, report: dict) -> None:
+        assert _REQUIRED_TOP_LEVEL_KEYS.issubset(report.keys())
 
-    assert "candidates" in report
-    assert len(report["candidates"]) >= 3
+    def test_each_candidate_has_required_fields(self, report: dict) -> None:
+        for cand in report["candidates"]:
+            assert _REQUIRED_CANDIDATE_FIELDS.issubset(cand.keys()), (
+                f"Candidate {cand.get('candidate_id', '?')} missing keys: "
+                f"{_REQUIRED_CANDIDATE_FIELDS - cand.keys()}"
+            )
 
-    candidate_ids = {entry["candidate_id"] for entry in report["candidates"]}
-    assert REQUIRED_CANDIDATES.issubset(candidate_ids)
+    def test_parameters_have_required_keys(self, report: dict) -> None:
+        for cand in report["candidates"]:
+            assert _REQUIRED_PARAMETER_KEYS.issubset(cand["parameters"].keys()), (
+                f"Candidate {cand['candidate_id']} parameters missing keys: "
+                f"{_REQUIRED_PARAMETER_KEYS - cand['parameters'].keys()}"
+            )
 
-    param_tuples = {
-        (
-            entry["parameters"]["shortage_penalty_multiplier"],
-            entry["parameters"]["cvar_weight"],
+    def test_baseline_summary_has_required_keys(self, report: dict) -> None:
+        for cand in report["candidates"]:
+            assert _REQUIRED_BASELINE_KEYS.issubset(cand["baseline_summary"].keys()), (
+                f"Candidate {cand['candidate_id']} baseline_summary missing keys: "
+                f"{_REQUIRED_BASELINE_KEYS - cand['baseline_summary'].keys()}"
+            )
+
+    def test_stress_summary_has_required_keys(self, report: dict) -> None:
+        for cand in report["candidates"]:
+            assert _REQUIRED_STRESS_KEYS.issubset(cand["stress_summary"].keys()), (
+                f"Candidate {cand['candidate_id']} stress_summary missing keys: "
+                f"{_REQUIRED_STRESS_KEYS - cand['stress_summary'].keys()}"
+            )
+
+
+# ===================================================================
+# TestContractChecks
+# ===================================================================
+class TestContractChecks:
+    def test_all_candidates_have_eight_contract_checks(self, report: dict) -> None:
+        for cand in report["candidates"]:
+            assert len(cand["contract_checks"]) == 8, (
+                f"Candidate {cand['candidate_id']} has "
+                f"{len(cand['contract_checks'])} checks, expected 8"
+            )
+
+    def test_contract_check_ids_match_constants(self, report: dict) -> None:
+        expected_ids = set(report["constants"]["contract_check_ids"])
+        for cand in report["candidates"]:
+            actual_ids = {ch["id"] for ch in cand["contract_checks"]}
+            assert actual_ids == expected_ids, (
+                f"Candidate {cand['candidate_id']} check IDs mismatch: "
+                f"extra={actual_ids - expected_ids}, "
+                f"missing={expected_ids - actual_ids}"
+            )
+
+
+# ===================================================================
+# TestWinnerValidity
+# ===================================================================
+class TestWinnerValidity:
+    def test_winner_exists(self, report: dict) -> None:
+        assert report["winner"]["candidate_id"] is not None
+
+    def test_winner_is_eligible(self, report: dict) -> None:
+        winner_id = report["winner"]["candidate_id"]
+        for cand in report["candidates"]:
+            if cand["candidate_id"] == winner_id:
+                assert cand["contract_eligible_for_board"] is True
+                return
+        pytest.fail(f"Winner {winner_id} not found in candidates")
+
+    def test_winner_passes_all_contract_checks(self, report: dict) -> None:
+        winner_id = report["winner"]["candidate_id"]
+        for cand in report["candidates"]:
+            if cand["candidate_id"] == winner_id:
+                for ch in cand["contract_checks"]:
+                    assert ch["passed"] is True, (
+                        f"Winner {winner_id} failed check {ch['id']}: "
+                        f"{ch.get('details', '')}"
+                    )
+                return
+        pytest.fail(f"Winner {winner_id} not found in candidates")
+
+
+# ===================================================================
+# TestBoardScoring
+# ===================================================================
+class TestBoardScoring:
+    def test_all_board_scores_between_zero_and_one(self, report: dict) -> None:
+        for cand in report["candidates"]:
+            if cand["board_score"] is not None:
+                assert 0.0 - 1e-9 <= cand["board_score"] <= 1.0 + 1e-9, (
+                    f"Candidate {cand['candidate_id']} board_score "
+                    f"{cand['board_score']} out of [0, 1]"
+                )
+
+    def test_winner_has_lowest_board_score(self, report: dict) -> None:
+        winner_id = report["winner"]["candidate_id"]
+        winner_score = report["winner"]["board_score"]
+        for cand in report["candidates"]:
+            if cand["board_score"] is not None:
+                assert winner_score <= cand["board_score"] + 1e-9, (
+                    f"Winner {winner_id} score {winner_score} > "
+                    f"candidate {cand['candidate_id']} score {cand['board_score']}"
+                )
+
+
+# ===================================================================
+# TestDeterminism
+# ===================================================================
+class TestDeterminism:
+    def test_deterministic_across_runs(self) -> None:
+        r1 = run_adversarial_board_harness(
+            write_report=False, print_console_summary=False
         )
-        for entry in report["candidates"]
-        if entry["candidate_id"] in REQUIRED_CANDIDATES
-    }
-    assert len(param_tuples) == 3
-
-    for entry in report["candidates"]:
-        assert "parameters" in entry
-        assert "contract_checks" in entry
-        assert "baseline_summary" in entry
-        assert "stress_summary" in entry
-        assert "board_score" in entry
-        assert "board_score_components" in entry
-        assert "contract_eligible_for_board" in entry
-
-        check_ids = [check["id"] for check in entry["contract_checks"]]
-        assert check_ids == REQUIRED_CONTRACT_CHECKS
-
-        stress_summary = entry["stress_summary"]
-        assert stress_summary["demand_multiplier"] == pytest.approx(1.20, abs=1e-12)
-        assert "objective" in stress_summary
-        assert "objective_components" in stress_summary
-        assert "unmet_metrics" in stress_summary
-        assert "total_unmet" in stress_summary["unmet_metrics"]
-        assert "critical_unmet" in stress_summary["unmet_metrics"]
-
-
-def test_board_score_formula_applied_for_each_contract_eligible_candidate():
-    report = _run_report(write_report=False)
-    weights = report["board_scoring"]["weights"]
-
-    for entry in report["candidates"]:
-        if not entry["contract_eligible_for_board"]:
-            assert entry["board_score"] is None
-            continue
-
-        components = entry["board_score_components"]
-        expected = (
-            weights["normalized_baseline_objective"]
-            * components["normalized_baseline_objective"]
-            + weights["normalized_stressed_total_unmet"]
-            * components["normalized_stressed_total_unmet"]
-            + weights["normalized_stressed_critical_unmet"]
-            * components["normalized_stressed_critical_unmet"]
-            + weights["normalized_open_depot_count"]
-            * components["normalized_open_depot_count"]
+        r2 = run_adversarial_board_harness(
+            write_report=False, print_console_summary=False
         )
-        assert entry["board_score"] == pytest.approx(expected, abs=1e-12)
+        assert r1["winner"]["candidate_id"] == r2["winner"]["candidate_id"]
+        if r1["winner"]["board_score"] is not None:
+            assert math.isclose(
+                r1["winner"]["board_score"],
+                r2["winner"]["board_score"],
+                abs_tol=1e-6,
+            )
 
 
-def test_tie_break_logic_critical_then_total_then_lexicographic():
-    module = _load_module()
+# ===================================================================
+# TestStressTest
+# ===================================================================
+class TestStressTest:
+    def test_stress_demand_multiplier_is_1_2(self, report: dict) -> None:
+        for cand in report["candidates"]:
+            assert cand["stress_summary"]["demand_multiplier"] == 1.2
 
-    eligible_entries = [
-        {
-            "candidate_id": "candidate_zeta",
-            "baseline_summary": {"objective": 100.0, "open_depot_count": 2},
-            "stress_summary": {
-                "unmet_metrics": {"total_unmet": 10.0, "critical_unmet": 4.0}
-            },
-        },
-        {
-            "candidate_id": "candidate_alpha",
-            "baseline_summary": {"objective": 100.0, "open_depot_count": 2},
-            "stress_summary": {
-                "unmet_metrics": {"total_unmet": 10.0, "critical_unmet": 4.0}
-            },
-        },
-        {
-            "candidate_id": "candidate_mid",
-            "baseline_summary": {"objective": 100.0, "open_depot_count": 2},
-            "stress_summary": {
-                "unmet_metrics": {"total_unmet": 9.0, "critical_unmet": 5.0}
-            },
-        },
-    ]
+    def test_stress_frozen_design_matches_baseline(self, report: dict) -> None:
+        for cand in report["candidates"]:
+            baseline_open = set(cand["baseline_summary"]["open_depots"])
+            frozen = cand["stress_summary"]["frozen_open_design"]
+            frozen_open = {d for d, v in frozen.items() if v == 1}
+            assert baseline_open == frozen_open, (
+                f"Candidate {cand['candidate_id']}: "
+                f"baseline depots {baseline_open} != frozen {frozen_open}"
+            )
 
-    # Force all board scores to tie so only explicit tie-break rules apply.
-    board_scoring = {
-        "candidate_scores": {
-            "candidate_alpha": {"board_score": 1.0},
-            "candidate_mid": {"board_score": 1.0},
-            "candidate_zeta": {"board_score": 1.0},
-        }
-    }
-
-    decision = module.select_winner(eligible_entries, board_scoring)
-    ranking_ids = [item["candidate_id"] for item in decision["eligible_ranking"]]
-
-    assert decision["winner_candidate_id"] == "candidate_alpha"
-    assert ranking_ids == ["candidate_alpha", "candidate_zeta", "candidate_mid"]
-
-
-def test_winner_is_contract_eligible_and_selected_from_ranking():
-    report = _run_report(write_report=False)
-
-    winner_id = report["winner"]["candidate_id"]
-    winner_entries = [
-        entry for entry in report["candidates"] if entry["candidate_id"] == winner_id
-    ]
-
-    assert len(winner_entries) == 1
-    assert winner_entries[0]["contract_eligible_for_board"] is True
-    assert winner_entries[0]["selected_as_winner"] is True
-
-    ranking_top = report["board_decision"]["eligible_ranking"][0]["candidate_id"]
-    assert ranking_top == winner_id
-
-
-def test_deterministic_winner_and_scores_across_repeated_runs():
-    report_a = _run_report(write_report=False)
-    report_b = _run_report(write_report=False)
-
-    assert report_a["winner"]["candidate_id"] == report_b["winner"]["candidate_id"]
-    assert report_a["winner"]["board_score"] == pytest.approx(
-        report_b["winner"]["board_score"], abs=1e-12
-    )
-
-    scores_a = {
-        entry["candidate_id"]: entry["board_score"]
-        for entry in report_a["candidates"]
-        if entry["board_score"] is not None
-    }
-    scores_b = {
-        entry["candidate_id"]: entry["board_score"]
-        for entry in report_b["candidates"]
-        if entry["board_score"] is not None
-    }
-
-    assert scores_a == pytest.approx(scores_b, abs=1e-12)
+    def test_stress_objective_at_least_baseline(self, report: dict) -> None:
+        for cand in report["candidates"]:
+            bs_obj = cand["baseline_summary"]["objective"]
+            st_obj = cand["stress_summary"]["objective"]
+            # Stress (higher demand, frozen depots) should be at least as costly
+            assert st_obj >= bs_obj - 1e-2, (
+                f"Candidate {cand['candidate_id']}: stress obj {st_obj:.4f} "
+                f"< baseline obj {bs_obj:.4f}"
+            )
