@@ -367,7 +367,7 @@
           <output id="attSliderOut" for="attSlider">4k tokens</output>
         </div>
         <div class="chart-container">
-          <canvas id="attCanvas" width="860" height="320" role="img" aria-label="U-shaped recall accuracy curve showing position-dependent attention"></canvas>
+          <canvas id="attCanvas" width="860" height="350" role="img" aria-label="U-shaped recall accuracy curve showing position-dependent attention"></canvas>
         </div>
         <div id="attInsight" class="insight-callout"></div>
       </div>
@@ -610,7 +610,7 @@
 
     function drawAttentionChart(preset) {
       const w = attCanvas.width, h = attCanvas.height;
-      const left = 56, right = w - 20, top = 20, bottom = h - 36;
+      const left = 56, right = w - 20, top = 50, bottom = h - 36;
       const innerW = right - left, innerH = bottom - top;
 
       attCtx.clearRect(0, 0, w, h);
@@ -687,7 +687,7 @@
         attCtx.font = "bold 11px IBM Plex Sans, sans-serif";
         const align = m.pos < 0.15 ? "left" : m.pos > 0.85 ? "right" : "center";
         attCtx.textAlign = align;
-        const labelY = y - 14;
+        const labelY = y - 20;
         attCtx.fillText(m.name, x, labelY);
         attCtx.fillText(Math.round(recall) + "%", x, labelY + 13);
       });
