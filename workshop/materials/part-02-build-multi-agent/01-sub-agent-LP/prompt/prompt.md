@@ -1,14 +1,19 @@
 # Prompt
 
-Solve the disaster-relief transportation problem described in `workshop/materials/part-01-explorer-paradigm/00-problem/exercise-statement.md` using the CSV data files in `workshop/data/` (depots.csv, towns.csv, arcs.csv, scenarios.csv, scenario_demands.csv).
+Solve the problem described in `workshop/materials/part-01-explorer-paradigm/00-problem/exercise-statement.md` using data from `workshop/data/` (depots.csv, towns.csv, arcs.csv, scenarios.csv, scenario_demands.csv). **Do not read any other files in the repository — no other scripts, no other prompts, no other results.**
 
-Structure your solution as a manager orchestrating specialized sub-agents, where each sub-agent handles a single concern:
+Break the work into specialized sub-agents. Each sub-agent focuses on one concern and goes deeper than a single flat prompt would. You orchestrate them as you see fit — sequentially, in parallel where dependencies allow, or a mix of both.
 
-- A **planner** sub-agent that selects the risk parameters: shortage_penalty=15.0, cvar_alpha=0.85, risk_weight=20.0.
-- A **data** sub-agent that loads all inputs from the CSV files using Python's csv module.
-- A **prompt writer** sub-agent that produces a formal contract specifying the model must be pure LP -- continuous variables only, no integer/binary decisions, all depots active, and critical towns (T03, T04, T07, T12) must receive at least 95% service.
-- An **executor** sub-agent that builds and solves the LP model using xpress. It should refuse to proceed if the contract specifies anything that would make the model a MILP.
-- A **tester** sub-agent that validates the solution: solver status is LP-optimal, no integer variables exist, all depots are active, critical service constraints are met, and the objective decomposes correctly into transport cost + shortage penalty + risk term.
-- A **reporter** sub-agent that prints the final results.
+## Sub-agent 1 — Problem Understander
+Read and analyse the problem statement. Identify the optimization structure, decision variables, constraints, objective components, and risk modeling requirements. Produce a thorough problem analysis that downstream sub-agents will build on.
 
-The manager calls each sub-agent in sequence, passing outputs between them. Keep everything in a single Python file runnable with `uv run python <script.py>`.
+## Sub-agent 2 — Data Understander
+Read and analyse all data files. Understand the structure, relationships, ranges, and edge cases. Identify what validation checks are needed, what derived statistics would be useful, and how the data maps to the problem formulation.
+
+## Sub-agent 3 — Implementer
+Using the problem and data understanding, implement a complete Python script. Use `xpress` as the solver. Continuous variables only, all depots active. The script should reflect the depth of understanding from the previous sub-agents — richer validation, deeper analysis, more comprehensive reporting than a naive single-pass implementation would produce.
+
+## Sub-agent 4 — Reviewer
+Review the implemented script against the problem and data analyses. Verify correctness, completeness, and code quality. Fix any issues. Ensure no prompt concepts ("sub-agent", "manager", "pipeline") leak into the code — it should read as clean, natural Python with a clear `main()`.
+
+Produce a single executable Python file using `xpress`, `csv`, and `pathlib`. Run with `uv run python workshop/materials/part-02-build-multi-agent/01-sub-agent-LP/run_sub_agent_lp.py`.

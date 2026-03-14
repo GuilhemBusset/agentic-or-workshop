@@ -1,23 +1,17 @@
 # Prompt Used (Team of Agents, LP-Only, Zero-Context)
 
-Read the disaster-relief problem statement at `workshop/materials/part-01-explorer-paradigm/00-problem/exercise-statement.md` and the data files in `workshop/data/` (depots.csv, towns.csv, arcs.csv, scenarios.csv, scenario_demands.csv).
+Use a **team of agents** to solve the problem described in `workshop/materials/part-01-explorer-paradigm/00-problem/exercise-statement.md` using data from `workshop/data/` (depots.csv, towns.csv, arcs.csv, scenarios.csv, scenario_demands.csv). **Do not read any other files in the repository — no other scripts, no other prompts, no other results.** Each agent is spawned sequentially, with the output of one feeding the next.
 
-Solve this problem using a **team-of-agents** paradigm: create three competing solution pods, each with a different risk posture. Every pod has its own model builder, tester, and writer. A board then evaluates all pods and picks the best one.
+## Agent 1 — Problem Analyst
+Read the problem statement and all data files. Understand the structure, relationships, constraints, and objectives. Produce a detailed analysis document covering: what the data contains (schemas, ranges, relationships between files), what the optimization problem is, what risk modeling is needed, and what outputs the final script should produce. This agent does not write code — it writes the problem understanding that all downstream agents will build on. Its output must be self-contained so that no downstream agent needs to re-read the data files.
 
-The three pods should use these configurations:
-- **Pod A (cost-focused)**: risk_weight=10.0, shortage_penalty=8.0
-- **Pod B (balanced)**: risk_weight=24.0, shortage_penalty=12.0
-- **Pod C (risk-averse)**: risk_weight=40.0, shortage_penalty=20.0
+## Agent 2 — Task Architect
+Using only Agent 1's analysis (do not read the data files), produce a detailed technical specification for a production-grade Python script. Production-grade means: frozen dataclasses with full type annotations for all data structures and function signatures, single-responsibility functions, validated inputs, named constraints for traceability, and a clean `main()` entry point. The specification should define every module boundary, every data structure, every function signature, and the expected printed output format. This agent does not write code — it writes the blueprint.
 
-All pods share cvar_alpha=0.80 and critical_service_floor=0.95.
+## Agent 3 — Implementor
+Using Agent 2's specification, implement the full script. Follow the spec exactly: data structures, function signatures, constraint naming, output format. Use `xpress` as the solver. Continuous variables only, all depots active. The script must be a single executable Python file using only `xpress`, `csv`, and `pathlib`.
 
-Each pod must build a pure LP model (continuous variables only, no binary/integer variables). All depots stay active -- do not optimize depot-opening decisions. Critical towns (T03, T04, T07, T12) must receive at least 95% of their demand. Use `xpress` as the solver. Per-scenario demands come directly from `scenario_demands.csv`.
+## Agent 4 — Reviewer
+Review the implemented script against Agent 2's specification. Verify: all spec requirements are met, type annotations are correct and complete, naming is consistent, no duplicated logic, no prompt concepts ("agent", "team", "board") leak into the code. Fix any issues and produce the final version.
 
-Each pod's tester verifies: LP-optimal status, no integer variables, all depots active, literal intent respected, critical service met, and objective consistency.
-
-The board selects among contract-respecting candidates using the governance score:
-`governance_score = expected_transport + expected_penalty + 15.0 * worst_scenario_unmet`
-
-Output a comparison table of all candidates (showing risk_weight, shortage_penalty, objective, governance score), then print the selected plan details: candidate name, risk weight, shortage penalty, objective, depot list, cost breakdown, CVaR indicator, contract/tester status, and top expected shipment lanes.
-
-Produce a single executable Python file using `xpress`, reading data from CSV files via `csv` and `pathlib`. Run with `uv run python <script.py>`.
+Run with `uv run python workshop/materials/part-02-build-multi-agent/02-team-of-agents-LP/run_team_agents_lp.py`.
