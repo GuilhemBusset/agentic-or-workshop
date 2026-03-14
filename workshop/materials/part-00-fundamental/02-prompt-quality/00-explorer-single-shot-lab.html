@@ -141,14 +141,21 @@
       letter-spacing: 0.01em;
     }
 
+    .prompt-studio {
+      display: flex;
+      flex-direction: column;
+    }
+
     .prompt-card {
       border: 1px solid var(--line);
       border-radius: 10px;
       background: #fff;
       padding: 10px;
-      display: grid;
+      display: flex;
+      flex-direction: column;
       gap: 6px;
-      margin-bottom: 10px;
+      flex: 1;
+      min-height: 0;
     }
 
     .prompt-card h3 {
@@ -161,7 +168,8 @@
 
     textarea {
       width: 100%;
-      min-height: 300px;
+      min-height: 200px;
+      flex: 1;
       resize: vertical;
       border: 1px solid var(--line);
       border-radius: 8px;
@@ -173,43 +181,6 @@
       font-family: "Consolas", "Menlo", monospace;
     }
 
-    .checklist {
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      background: #fff;
-      padding: 10px;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
-    }
-
-    .chk {
-      display: flex;
-      gap: 8px;
-      align-items: flex-start;
-      border: 1px solid #e2d3be;
-      border-radius: 8px;
-      padding: 8px;
-      background: #fffdfa;
-    }
-
-    .chk input {
-      margin-top: 1px;
-    }
-
-    .chk strong {
-      display: block;
-      font-size: 0.86rem;
-      line-height: 1.2;
-    }
-
-    .chk span {
-      display: block;
-      margin-top: 2px;
-      color: var(--muted);
-      font-size: 0.78rem;
-      line-height: 1.25;
-    }
 
     .metrics {
       display: grid;
@@ -375,7 +346,6 @@
     }
 
     @media (max-width: 780px) {
-      .checklist,
       .cards {
         grid-template-columns: 1fr;
       }
@@ -391,7 +361,6 @@
     .card h3,
     .insights h3,
     .control label,
-    .chk span,
     .status,
     .callout,
     .list,
@@ -399,7 +368,6 @@
       color: var(--od-text) !important;
     }
 
-    .chk strong,
     .value {
       color: var(--od-text-hi) !important;
     }
@@ -504,13 +472,12 @@
     </section>
 
     <section class="main">
-      <section class="panel">
+      <section class="panel prompt-studio">
         <h2>Prompt Studio</h2>
         <article class="prompt-card">
           <h3>Prompt Under Evaluation</h3>
           <textarea id="promptText"></textarea>
         </article>
-        <div class="checklist" id="checklist"></div>
       </section>
 
       <section class="panel metrics">
@@ -630,7 +597,6 @@ Failure handling:
       failure: false
     };
 
-    const checklistRoot = document.getElementById("checklist");
     const stageEl = document.getElementById("stage");
     const modeEl = document.getElementById("mode");
     const specificityEl = document.getElementById("specificity");
@@ -640,30 +606,6 @@ Failure handling:
     const endpointEl = document.getElementById("judgeEndpoint");
     const promptTextEl = document.getElementById("promptText");
     const statusEl = document.getElementById("judgeStatus");
-
-    function renderChecklist() {
-      checklistRoot.innerHTML = "";
-      checklistItems.forEach((item) => {
-        const wrapper = document.createElement("label");
-        wrapper.className = "chk";
-        wrapper.innerHTML = `
-          <input type="checkbox" data-id="${item.id}" ${checklistState[item.id] ? "checked" : ""}>
-          <div>
-            <strong>${item.label}</strong>
-            <span>${item.desc}</span>
-          </div>
-        `;
-        checklistRoot.appendChild(wrapper);
-      });
-
-      checklistRoot.querySelectorAll("input[type='checkbox']").forEach((el) => {
-        el.addEventListener("change", (ev) => {
-          checklistState[ev.target.dataset.id] = ev.target.checked;
-          renderCoveragePills(null);
-          setStatus("Requirements changed. Click Evaluate Prompt.");
-        });
-      });
-    }
 
     function setStatus(message, tone = "idle") {
       statusEl.textContent = message;
@@ -878,7 +820,6 @@ Failure handling:
 
     endpointEl.addEventListener("change", detectBackend);
 
-    renderChecklist();
     applyPreset();
     detectBackend();
   </script>
