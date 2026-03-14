@@ -57,7 +57,9 @@ Rules:
 ## Required Report Output
 
 Create exactly one file:
-- `workshop/materials/part-01-explorer-paradigm/01-data-explorer/skills/data-signal-analysis-team/team_output/data_analysis_report.md`
+- `workshop/materials/part-01-explorer-paradigm/01-data-explorer/skills/data-signal-analysis-team/team_output/data_analysis_report_<run_id>.md`
+
+where `<run_id>` is a short unique identifier generated at the start of each run (e.g. first 8 characters of a UUID-v4). This allows multiple parallel runs to produce independent reports without overwriting each other.
 
 No additional output files are allowed for this skill run.
 
@@ -75,7 +77,7 @@ No additional output files are allowed for this skill run.
 ## Completion Criteria
 
 The skill is complete only if all conditions are true:
-1. The output is a single markdown file at the required path.
+1. The output is a single markdown file at the required path (with a unique `<run_id>` suffix).
 2. Findings are grounded in `data-explorer-csv` results.
 3. Analysis remains data-focused (no optimization-model design steps).
 4. The report highlights the most decision-relevant elements of the dataset.
