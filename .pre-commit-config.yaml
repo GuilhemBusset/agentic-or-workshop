@@ -7,3 +7,9 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+      - id: conventional-commit-msg
+        name: Enforce conventional commit message
+        entry: bash -c 'msg=$(cat "$1"); first=$(echo "$msg" | head -1); if echo "$first" | grep -qE "^Merge "; then exit 0; fi; if ! echo "$first" | grep -qE "^(feat|fix|build|chore|ci|docs|style|refactor|perf|test|revert)\(.+\)!?: .+"; then echo "ERROR: Commit message must match: type(scope): description"; echo "  Allowed types: feat, fix, build, chore, ci, docs, style, refactor, perf, test, revert"; echo "  Example: feat(part-02): add CSV data loader"; echo "  Got: $first"; exit 1; fi' --
+        language: system
+        stages: [commit-msg]
+        always_run: true
