@@ -1,0 +1,63 @@
+{
+  "baseline": {
+    "status": "mip_optimal",
+    "feasible": true,
+    "objective": 5957.5887500000035,
+    "open_depots": [
+      "D04",
+      "D06"
+    ],
+    "cost_breakdown": {
+      "fixed_opening_cost": 5200.0,
+      "expected_transport_cost": 757.58875,
+      "expected_shortage_penalty": 0.0,
+      "cvar_risk_term": 0.0
+    },
+    "expected_unmet": 0.0,
+    "max_scenario_unmet": 0.0
+  },
+  "relations": [
+    {
+      "name": "capacity_halving",
+      "passed": true,
+      "baseline_value": 0.0,
+      "perturbed_value": 115.125,
+      "direction": ">=",
+      "description": "Halve capacities (fixed depots): unmet must not decrease"
+    },
+    {
+      "name": "fixed_cost_halving",
+      "passed": true,
+      "baseline_value": 5957.5887500000035,
+      "perturbed_value": 3357.5887499999985,
+      "direction": "<=",
+      "description": "Halve fixed costs (full MILP): objective must not increase"
+    },
+    {
+      "name": "demand_scaling",
+      "passed": true,
+      "baseline_value": 0.0,
+      "perturbed_value": 230.25,
+      "direction": ">=",
+      "description": "Scale demands 2x/3x (fixed depots): unmet chain monotonic",
+      "error": "3x demand problem infeasible; only 2x vs baseline checked"
+    },
+    {
+      "name": "penalty_under_scarcity",
+      "passed": true,
+      "baseline_value": 148.125,
+      "perturbed_value": 148.125,
+      "direction": "<=",
+      "description": "Penalty under scarcity: unmet(penalty=75) <= unmet(penalty=25)"
+    },
+    {
+      "name": "tightened_critical_floor",
+      "passed": true,
+      "baseline_value": 5957.5887500000035,
+      "perturbed_value": 5957.5887500000035,
+      "direction": ">=",
+      "description": "Tighten critical floor to 0.99 (full MILP): objective must not decrease"
+    }
+  ],
+  "all_passed": true
+}

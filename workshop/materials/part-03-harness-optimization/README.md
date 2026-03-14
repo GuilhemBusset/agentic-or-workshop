@@ -1,51 +1,51 @@
-# Part 03 - Harness Optimization (MILP, Controlled Context)
+# Part 03 - Harness Optimization (MILP)
 
 This section keeps the same disaster-relief optimization problem, but moves from LP-style modeling to a true MILP with binary depot-open decisions.
 
-The goal is to show how harness design changes development confidence, failure detection, and policy selection while keeping the solver context controlled and explicit.
+The goal is to show how three fundamentally different harness philosophies change development confidence, failure detection, and policy selection -- each representing a distinct axis of quality assurance for optimization code.
 
-## Controlled Context (shared across harnesses)
-All harnesses enforce the same core modeling contract:
+## Shared problem context
+All harnesses solve the same MILP:
 - Binary `open_depot` decisions.
 - Scenario-wise shipment and unmet-demand recourse.
 - Critical-town service floor for `T03`, `T04`, `T07`, `T12`.
 - Objective built from fixed opening cost, expected transport, expected shortage penalty, and CVaR-style shortage risk.
 
 ## Harnesses in this folder
-- `01-unit-test-harness-MILP`: fastest harness, validates local invariants immediately after one solve.
-- `02-contract-regression-harness-MILP`: adds explicit contract checks plus deterministic regression scenarios (all-open baseline, perturbation checks, stressed demand recourse).
-- `03-adversarial-board-harness-MILP`: evaluates multiple candidate policies, stress-tests each, and uses a deterministic board-scoring rule to select a winner.
 
-## What is different between these harnesses?
-- `01-unit-test-harness-MILP`:
-  - Scope: one model + one direct validation pass.
-  - Strength: quick feedback loop during implementation.
-  - Weakness: narrower coverage of regressions and selection tradeoffs.
-- `02-contract-regression-harness-MILP`:
-  - Scope: baseline model plus contract/regression matrix.
-  - Strength: stronger confidence against silent regressions.
-  - Weakness: more checks to maintain as contract evolves.
-- `03-adversarial-board-harness-MILP`:
-  - Scope: multi-candidate generation, stress evaluation, board decision.
-  - Strength: makes tradeoffs explicit and reproducible at policy-selection time.
-  - Weakness: highest complexity and longest runtime.
+### `01-unit-test-harness-MILP` -- Specification-driven (single prompt)
+Write tests first, implement solver until all tests pass. Validates absolute correctness of a single solve against known expected properties: data shapes, critical town sets, solver status, objective structure.
 
-## Other harness approaches to consider
-- Property-based harnesses: generate many randomized but contract-valid instances and assert invariant families.
-- Metamorphic harnesses: assert directional behavior under structured perturbations (e.g., higher demand should not reduce unmet shortage under fixed design).
-- Scenario fuzzing harnesses: adversarially synthesize extreme scenario mixes to probe robustness.
-- Historical backtesting harnesses: replay archived instances and compare current outputs to locked baselines.
-- Differential solver harnesses: solve with multiple MILP backends and compare objective/components within tolerance.
-- Cost-of-failure harnesses: rank candidate solutions by explicit consequence models, not only objective value.
+- **Philosophy**: "I know the right answer for these cases."
+- **Agentic paradigm**: Single prompt.
+
+### `02-metamorphic-harness-MILP` -- Relational correctness (sub-agents)
+Solve a baseline, apply structured perturbations, assert that output changes follow predictable directions. For example: increasing demand must not decrease unmet shortage; reducing costs must not increase the objective. No reference solutions needed.
+
+- **Philosophy**: "I don't know the exact answer, but I know how answers should relate."
+- **Agentic paradigm**: Sub-agents.
+
+### `03-adversarial-board-harness-MILP` -- Competitive selection (team of agents)
+Generate multiple candidate solutions with different risk/cost tradeoffs, stress-test each under adversarial conditions, and select a winner through transparent deterministic scoring.
+
+- **Philosophy**: "I have multiple candidates -- which is best?"
+- **Agentic paradigm**: Team of agents.
+
+## What makes each harness distinct?
+
+| Dimension | Unit-Test TDD | Metamorphic | Adversarial Board |
+|-----------|--------------|-------------|-------------------|
+| Requires known answer? | Yes | No | No |
+| Output type | Pass/Fail | Pass/Fail | Ranking |
+| Tests what? | Exact behavior | Structural properties | Relative quality |
+| Developer role | Specifies expected output | Specifies relations | Specifies eval criteria |
+| Complexity | Low (1 solve) | Medium (N+1 solves) | High (2N solves + scoring) |
 
 ## How to run
 From repo root:
 
 ```bash
 uv run python workshop/materials/part-03-harness-optimization/01-unit-test-harness-MILP/run_unit_test_harness_milp.py
-uv run python workshop/materials/part-03-harness-optimization/02-contract-regression-harness-MILP/run_contract_regression_harness_milp.py
+uv run python workshop/materials/part-03-harness-optimization/02-metamorphic-harness-MILP/run_metamorphic_harness_milp.py
 uv run python workshop/materials/part-03-harness-optimization/03-adversarial-board-harness-MILP/run_adversarial_board_harness_milp.py
-uv run python workshop/materials/part-03-harness-optimization/compare_all_harnesses.py
 ```
-
-`compare_all_harnesses.py` auto-discovers and runs all harness solver scripts in this folder (`*/run_*.py` with `harness` in path), then prints a normalized comparison table.
