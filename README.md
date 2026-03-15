@@ -138,9 +138,9 @@ Three quality-assurance paradigms for the same MILP (with binary depot-open deci
 
 | Module | Harness | Philosophy |
 |--------|---------|------------|
-| `01-unit-test-harness-MILP` | Unit-test (TDD) | "I know the right answer for these cases" |
-| `02-metamorphic-harness-MILP` | Metamorphic | "I don't know the exact answer, but I know how answers should relate" |
-| `03-adversarial-board-harness-MILP` | Adversarial board | "I have multiple candidates -- which is best?" |
+| `00-unit-test-harness-MILP` | Unit-test (TDD) | "I know the right answer for these cases" |
+| `01-metamorphic-harness-MILP` | Metamorphic | "I don't know the exact answer, but I know how answers should relate" |
+| `02-adversarial-board-harness-MILP` | Adversarial board | "I have multiple candidates -- which is best?" |
 
 ## Xpress Solver (Optional)
 

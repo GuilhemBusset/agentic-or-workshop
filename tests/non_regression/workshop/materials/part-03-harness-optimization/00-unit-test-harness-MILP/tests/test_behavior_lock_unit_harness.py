@@ -16,7 +16,7 @@ def _repo_root() -> Path:
 
 ROOT = _repo_root()
 SCRIPT_PATH = ROOT / Path(
-    "workshop/materials/part-03-harness-optimization/01-unit-test-harness-MILP/run_unit_test_harness_milp.py"
+    "workshop/materials/part-03-harness-optimization/00-unit-test-harness-MILP/run_unit_test_harness_milp.py"
 )
 FIXTURE_PATH = (
     Path(__file__).resolve().parent / "fixtures" / "behavior_lock_output.json"

@@ -13,19 +13,19 @@ All harnesses solve the same MILP:
 
 ## Harnesses in this folder
 
-### `01-unit-test-harness-MILP` -- Specification-driven (single prompt)
+### `00-unit-test-harness-MILP` -- Specification-driven (single prompt)
 Write tests first, implement solver until all tests pass. Validates absolute correctness of a single solve against known expected properties: data shapes, critical town sets, solver status, objective structure.
 
 - **Philosophy**: "I know the right answer for these cases."
 - **Agentic paradigm**: Single prompt.
 
-### `02-metamorphic-harness-MILP` -- Relational correctness (sub-agents)
+### `01-metamorphic-harness-MILP` -- Relational correctness (sub-agents)
 Solve a baseline, apply structured perturbations, assert that output changes follow predictable directions. For example: increasing demand must not decrease unmet shortage; reducing costs must not increase the objective. No reference solutions needed.
 
 - **Philosophy**: "I don't know the exact answer, but I know how answers should relate."
 - **Agentic paradigm**: Sub-agents.
 
-### `03-adversarial-board-harness-MILP` -- Competitive selection (team of agents)
+### `02-adversarial-board-harness-MILP` -- Competitive selection (team of agents)
 Generate multiple candidate solutions with different risk/cost tradeoffs, stress-test each under adversarial conditions, and select a winner through transparent deterministic scoring.
 
 - **Philosophy**: "I have multiple candidates -- which is best?"
@@ -45,7 +45,7 @@ Generate multiple candidate solutions with different risk/cost tradeoffs, stress
 From repo root:
 
 ```bash
-uv run python workshop/materials/part-03-harness-optimization/01-unit-test-harness-MILP/run_unit_test_harness_milp.py
-uv run python workshop/materials/part-03-harness-optimization/02-metamorphic-harness-MILP/run_metamorphic_harness_milp.py
-uv run python workshop/materials/part-03-harness-optimization/03-adversarial-board-harness-MILP/run_adversarial_board_harness_milp.py
+uv run python workshop/materials/part-03-harness-optimization/00-unit-test-harness-MILP/run_unit_test_harness_milp.py
+uv run python workshop/materials/part-03-harness-optimization/01-metamorphic-harness-MILP/run_metamorphic_harness_milp.py
+uv run python workshop/materials/part-03-harness-optimization/02-adversarial-board-harness-MILP/run_adversarial_board_harness_milp.py
 ```
