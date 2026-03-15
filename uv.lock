@@ -3,6 +3,47 @@ revision = 3
 requires-python = ">=3.12"
 
 [[package]]
+name = "agentic-or-workshop"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "duckdb" },
+    { name = "fastapi" },
+    { name = "mcp" },
+    { name = "pulp" },
+    { name = "rich" },
+    { name = "uvicorn" },
+    { name = "xpress" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pre-commit" },
+    { name = "pytest" },
+    { name = "ruff" },
+    { name = "ty" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "duckdb", specifier = ">=1.4.4" },
+    { name = "fastapi", specifier = ">=0.133.1" },
+    { name = "mcp", specifier = ">=1.26.0" },
+    { name = "pulp", specifier = ">=3.3.0" },
+    { name = "rich", specifier = ">=14.3.3" },
+    { name = "uvicorn", specifier = ">=0.41.0" },
+    { name = "xpress", specifier = ">=9.8.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pre-commit", specifier = ">=4.5.1" },
+    { name = "pytest", specifier = ">=9.0.2" },
+    { name = "ruff", specifier = ">=0.15.2" },
+    { name = "ty", specifier = ">=0.0.18" },
+]
+
+[[package]]
 name = "annotated-doc"
 version = "0.0.4"
 source = { registry = "https://pypi.org/simple" }
@@ -127,47 +168,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/3d/fa/656b739db8587d7b5dfa22e22ed02566950fbfbcdc20311993483657a5c0/click-8.3.1.tar.gz", hash = "sha256:12ff4785d337a1bb490bb7e9c2b1ee5da3112e94a8622f26a6c77f5d2fc6842a", size = 295065, upload-time = "2025-11-15T20:45:42.706Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/98/78/01c019cdb5d6498122777c1a43056ebb3ebfeef2076d9d026bfe15583b2b/click-8.3.1-py3-none-any.whl", hash = "sha256:981153a64e25f12d547d3426c367a4857371575ee7ad18df2a6183ab0545b2a6", size = 108274, upload-time = "2025-11-15T20:45:41.139Z" },
-]
-
-[[package]]
-name = "codingwithagent"
-version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "duckdb" },
-    { name = "fastapi" },
-    { name = "mcp" },
-    { name = "pulp" },
-    { name = "rich" },
-    { name = "uvicorn" },
-    { name = "xpress" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "pre-commit" },
-    { name = "pytest" },
-    { name = "ruff" },
-    { name = "ty" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "duckdb", specifier = ">=1.4.4" },
-    { name = "fastapi", specifier = ">=0.133.1" },
-    { name = "mcp", specifier = ">=1.26.0" },
-    { name = "pulp", specifier = ">=3.3.0" },
-    { name = "rich", specifier = ">=14.3.3" },
-    { name = "uvicorn", specifier = ">=0.41.0" },
-    { name = "xpress", specifier = ">=9.8.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "pre-commit", specifier = ">=4.5.1" },
-    { name = "pytest", specifier = ">=9.0.2" },
-    { name = "ruff", specifier = ">=0.15.2" },
-    { name = "ty", specifier = ">=0.0.18" },
 ]
 
 [[package]]

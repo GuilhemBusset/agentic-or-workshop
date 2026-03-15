@@ -1,5 +1,5 @@
 [project]
-name = "codingwithagent"
+name = "agentic-or-workshop"
 version = "0.1.0"
 description = "Workshop materials for teaching agentic coding to PhD students in optimization research."
 readme = "README.md"
