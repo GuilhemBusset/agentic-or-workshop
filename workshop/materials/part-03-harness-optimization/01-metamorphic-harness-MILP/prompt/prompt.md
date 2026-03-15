@@ -18,4 +18,4 @@ Write pytest tests that verify both solver correctness and metamorphic relation 
 ## Sub-agent 4 -- Reviewer
 Review the solver, tests, and report against the relation designs. Verify metamorphic assertions are sound, edge cases are handled, and code quality is clean. Ensure no prompt concepts leak into the code -- it should read as natural Python with a clear `main()`.
 
-Produce an executable solver script, a pytest test file, and a JSON report. Run with `uv run python workshop/materials/part-03-harness-optimization/02-metamorphic-harness-MILP/run_metamorphic_harness_milp.py`. Tests at `workshop/materials/part-03-harness-optimization/02-metamorphic-harness-MILP/tests/test_metamorphic_harness_milp.py`.
+Produce an executable solver script, a pytest test file, and a JSON report. Run with `uv run python workshop/materials/part-03-harness-optimization/01-metamorphic-harness-MILP/run_metamorphic_harness_milp.py`. Tests at `workshop/materials/part-03-harness-optimization/01-metamorphic-harness-MILP/tests/test_metamorphic_harness_milp.py`.

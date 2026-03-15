@@ -22,6 +22,6 @@ Using Agent 2's specification, implement the full harness as a single executable
 
 Review the implemented script and tests against Agent 2's specification. Verify: all spec requirements are met, type annotations are correct and complete, naming is consistent, no duplicated logic, no prompt concepts ("agent", "team", "board harness") leak into the code, the scoring rule matches the architect's design, stress tests correctly freeze depot decisions, and the JSON report is complete. Fix any issues and produce the final versions.
 
-Run with `uv run python workshop/materials/part-03-harness-optimization/03-adversarial-board-harness-MILP/run_adversarial_board_harness_milp.py`.
+Run with `uv run python workshop/materials/part-03-harness-optimization/02-adversarial-board-harness-MILP/run_adversarial_board_harness_milp.py`.
 
-Tests with `uv run pytest workshop/materials/part-03-harness-optimization/03-adversarial-board-harness-MILP/tests/test_adversarial_board_harness_milp.py`.
+Tests with `uv run pytest workshop/materials/part-03-harness-optimization/02-adversarial-board-harness-MILP/tests/test_adversarial_board_harness_milp.py`.

@@ -12,7 +12,7 @@ def _repo_root() -> Path:
 
 ROOT = _repo_root()
 SCRIPT_PATH = ROOT / Path(
-    "workshop/materials/part-03-harness-optimization/03-adversarial-board-harness-MILP/run_adversarial_board_harness_milp.py"
+    "workshop/materials/part-03-harness-optimization/02-adversarial-board-harness-MILP/run_adversarial_board_harness_milp.py"
 )
 
 
